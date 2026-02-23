@@ -1,11 +1,14 @@
+import React from "react";
+import { Routes, Route } from "react-router-dom";
+import Recommendation from "./pages/Recommendation";
+
 function App() {
   return (
-    <div>
-      <h1>Insurance CRC Project</h1>
-    </div>
+    <Routes>
+      <Route path="/" element={<Recommendation />} />
+      <Route path="/recommendation" element={<Recommendation />} />
+    </Routes>
   );
 }
 
 export default App;
-
-

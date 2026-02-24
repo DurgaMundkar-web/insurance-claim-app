@@ -1,0 +1,103 @@
+/* client/src/components/RecommendationCard.css */
+.recommendation-card {
+  background: white;
+  border: 1px solid #E0E0E0;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 24px;
+  font-family: 'Inter', sans-serif;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 24px 0;
+}
+
+.category-tag {
+  background: #E8F5E9;
+  color: #2E7D32;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.match-score {
+  text-align: right;
+  color: #1B5E20;
+}
+
+.match-value { font-size: 24px; font-weight: 700; display: block; }
+.match-label { font-size: 12px; color: #666; }
+
+.card-body { padding: 0 24px 24px; }
+
+.policy-title { margin: 8px 0 4px; font-size: 18px; color: #333; }
+.provider-name { color: #888; font-size: 14px; margin-bottom: 16px; }
+
+.progress-container {
+  height: 8px;
+  background: #F0F0F0;
+  border-radius: 4px;
+  margin-bottom: 24px;
+}
+
+.progress-bar {
+  height: 100%;
+  background: #00C853;
+  border-radius: 4px;
+}
+
+.reason-box {
+  background: #F1F8E9;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.reason-title { font-size: 12px; color: #888; margin-bottom: 4px; }
+.reason-text { font-size: 14px; color: #333; font-weight: 500; }
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin-bottom: 20px;
+}
+
+.stat-item label { display: block; font-size: 12px; color: #888; margin-bottom: 4px; }
+.stat-item p { font-size: 15px; font-weight: 600; margin: 0; }
+.highlight-green { color: #2E7D32; }
+
+.risk-tag {
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+  border: 1px solid;
+}
+
+.low-risk { border-color: #2E7D32; color: #2E7D32; }
+.medium-risk { border-color: #F57C00; color: #F57C00; }
+
+.tags-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.feature-tag {
+  border: 1px solid #1B5E20;
+  color: #1B5E20;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.select-plan-btn {
+  width: 100%;
+  padding: 12px;
+  background: #1B5E20; /* Dark Green from Figma */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.select-plan-btn:hover { background: #145217; }

@@ -1,14 +1,16 @@
-
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Recommendation from './pages/Recommendation';
 
 function App() {
   return (
-    <div>
-      <h1>Internship Project</h1>
-      <Signup />
-      <Login />
-    </div>
+    <Router>
+      <Routes>
+        {/* जेव्हा तुम्ही localhost:3000 उघडाल, तेव्हा थेट शिफारस (Recommendation) पेज दिसेल */}
+        <Route path="/" element={<Recommendation />} />
+        <Route path="/recommendations" element={<Recommendation />} />
+      </Routes>
+    </Router>
   );
 }
 

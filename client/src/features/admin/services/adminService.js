@@ -99,6 +99,26 @@ export const deleteFraudRule = async (ruleId) => {
   }
 };
 
+export const updateFraudRule = async (ruleId, ruleData) => {
+  try {
+    const response = await apiClient.put(`/fraud-rules/${ruleId}`, ruleData);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating fraud rule:", error);
+    throw error;
+  }
+};
+
+export const toggleFraudRuleStatus = async (ruleId) => {
+  try {
+    const response = await apiClient.put(`/fraud-rules/${ruleId}/toggle-status`);
+    return response.data;
+  } catch (error) {
+    console.error("Error toggling fraud rule status:", error);
+    throw error;
+  }
+};
+
 // ============================================
 // CLAIMS APIs
 // ============================================
@@ -163,6 +183,9 @@ const adminService = {
   toggleUserStatus,
   getFraudRules,
   createFraudRule,
+  deleteFraudRule,
+  updateFraudRule,
+  toggleFraudRuleStatus,
   getClaims,
   createClaim,
   getAnalytics,

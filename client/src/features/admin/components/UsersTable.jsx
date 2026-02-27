@@ -7,6 +7,8 @@ const UsersTable = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [newUser, setNewUser] = useState({ name: "", email: "" });
 
   useEffect(() => {
@@ -64,6 +66,11 @@ const UsersTable = () => {
       alert("Failed to update user status");
       console.error(err);
     }
+  };
+
+  const handleViewDetails = (user) => {
+    setSelectedUser(user);
+    setShowDetailsModal(true);
   };
 
   if (loading) {
@@ -127,6 +134,21 @@ const UsersTable = () => {
                   </td>
                   <td>
                     <button
+                      className="btn-view"
+                      onClick={() => handleViewDetails(user)}
+                      title="View Details"
+                    >
+                      <span className="btn-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24">
+                          <path
+                            d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"
+                            fill="currentColor"
+                          />
+                        </svg>
+                      </span>
+                      View
+                    </button>
+                    <button
                       className="btn-toggle"
                       onClick={() => handleToggleStatus(user.id)}
                       title="Toggle Status"
@@ -189,6 +211,40 @@ const UsersTable = () => {
               </button>
               <button className="btn-secondary" onClick={() => setShowAddModal(false)}>
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View User Details Modal */}
+      {showDetailsModal && selectedUser && (
+        <div className="modal-overlay" onClick={() => setShowDetailsModal(false)}>
+          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+            <h3>User Details</h3>
+            <div className="user-details">
+              <div className="detail-row">
+                <span className="detail-label">ID:</span>
+                <span className="detail-value">{selectedUser.id}</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Name:</span>
+                <span className="detail-value">{selectedUser.name}</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Email:</span>
+                <span className="detail-value">{selectedUser.email}</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Status:</span>
+                <span className={`status-badge ${selectedUser.status.toLowerCase()}`}>
+                  {selectedUser.status}
+                </span>
+              </div>
+            </div>
+            <div className="modal-actions">
+              <button className="btn-primary" onClick={() => setShowDetailsModal(false)}>
+                Close
               </button>
             </div>
           </div>

@@ -17,6 +17,8 @@ class FraudRule(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     description = Column(String, nullable=False)
+    priority = Column(String, default="Medium")
+    status = Column(String, default="Active")
 
 
 class ClaimStats(Base):

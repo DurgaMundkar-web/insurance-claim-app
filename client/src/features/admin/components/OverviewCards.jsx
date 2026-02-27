@@ -9,6 +9,12 @@ const OverviewCards = () => {
     claims: 0,
     fraud_alerts: 0,
   });
+  const [quickStats, setQuickStats] = useState({
+    approval_rate: 0,
+    avg_processing_time: 0,
+    customer_satisfaction: 0,
+  });
+  const [systemAlerts, setSystemAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -19,8 +25,14 @@ const OverviewCards = () => {
   const fetchOverview = async () => {
     try {
       setLoading(true);
-      const data = await getOverview();
-      setStats(data);
+      const [overviewData, quickStatsData, systemAlertsData] = await Promise.all([
+        getOverview(),
+        fetch("http://localhost:8000/admin/quick-stats").then(res => res.json()),
+        fetch("http://localhost:8000/admin/system-alerts").then(res => res.json()),
+      ]);
+      setStats(overviewData);
+      setQuickStats(quickStatsData);
+      setSystemAlerts(systemAlertsData.alerts || []);
       setError(null);
     } catch (err) {
       setError("Failed to load overview data");
@@ -40,72 +52,100 @@ const OverviewCards = () => {
 
   const cards = [
     {
-      title: "Total Users",
-      value: stats.total_users,
-      color: "#1B5E20",
-      badge: "Live",
-      icon: (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M5 18.5c0-3 2.5-5.5 5.5-5.5h3c3 0 5.5 2.5 5.5 5.5V20H5v-1.5z" fill="currentColor" opacity="0.25" />
-          <path d="M12 4a4 4 0 1 1 0 8 4 4 0 0 1 0-8z" fill="currentColor" />
-        </svg>
-      ),
+      title: "Total Claims",
+      value: stats.claims || 0,
+      change: "+8%",
+      changeLabel: "vs last month",
+      icon: "📄",
+      bgColor: "#ffffff",
+    },
+    {
+      title: "High-Risk Claims",
+      value: stats.fraud_alerts || 0,
+      change: "-12%",
+      changeLabel: "vs last month",
+      icon: "⚠️",
+      bgColor: "#ffffff",
     },
     {
       title: "Active Policies",
-      value: stats.active_policies,
-      color: "#2E7D32",
-      badge: "Stable",
-      icon: (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M4 12c0-4.4 3.6-8 8-8h4a4 4 0 0 1 4 4v8.5a1.5 1.5 0 0 1-2.4 1.2l-2.4-1.8H12c-4.4 0-8-3.6-8-8z" fill="currentColor" opacity="0.25" />
-          <path d="M8 11h8v2H8v-2z" fill="currentColor" />
-        </svg>
-      ),
+      value: stats.active_policies || 0,
+      change: "+5%",
+      changeLabel: "vs last month",
+      icon: "🛡️",
+      bgColor: "#ffffff",
     },
     {
-      title: "Claims",
-      value: stats.claims,
-      color: "#388E3C",
-      badge: "Monthly",
-      icon: (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M6 4h8l4 4v12H6V4z" fill="currentColor" opacity="0.25" />
-          <path d="M8 12h8v2H8v-2zm0 4h5v2H8v-2z" fill="currentColor" />
-        </svg>
-      ),
-    },
-    {
-      title: "Fraud Alerts",
-      value: stats.fraud_alerts,
-      color: "#C62828",
-      badge: "Watch",
-      icon: (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 3l8 4v6c0 4.4-3.1 8.4-8 9.9-4.9-1.5-8-5.5-8-9.9V7l8-4z" fill="currentColor" opacity="0.25" />
-          <path d="M11 7h2v6h-2V7zm0 8h2v2h-2v-2z" fill="currentColor" />
-        </svg>
-      ),
+      title: "Users with Plans",
+      value: stats.total_users || 0,
+      change: "+3%",
+      changeLabel: "vs last month",
+      icon: "👥",
+      bgColor: "#ffffff",
     },
   ];
 
   return (
-    <div className="overview-cards">
-      {cards.map((card, index) => (
-        <div
-          key={index}
-          className="overview-card"
-          style={{ backgroundColor: card.color }}
-        >
-          <div className="card-top">
-            <div className="card-icon">{card.icon}</div>
-            <span className="card-chip">{card.badge}</span>
+    <>
+      <div className="overview-cards-grid">
+        {cards.map((card, index) => (
+          <div key={index} className="stat-card">
+            <div className="stat-card-header">
+              <span className="stat-card-title">{card.title}</span>
+              <span className="stat-card-icon">{card.icon}</span>
+            </div>
+            <div className="stat-card-value">{card.value}</div>
+            <div className="stat-card-change">
+              <span className="change-indicator">{card.change}</span>
+              <span className="change-label">{card.changeLabel}</span>
+            </div>
           </div>
-          <h3 className="card-title">{card.title}</h3>
-          <h1 className="card-value">{card.value}</h1>
+        ))}
+      </div>
+
+      <div className="overview-bottom-section">
+        <div className="activity-section">
+          <h3 className="section-heading">Recent Activity</h3>
+          <div className="activity-content">
+            {/* Empty for now */}
+          </div>
         </div>
-      ))}
-    </div>
+
+        <div className="alerts-stats-section">
+          <div className="system-alerts">
+            <h3 className="section-heading">System Alerts</h3>
+            {systemAlerts.map((alert, index) => (
+              <div 
+                key={index} 
+                className={`alert-item alert-${alert.priority.toLowerCase()}`}
+              >
+                <span className="alert-icon">{alert.icon}</span>
+                <div className="alert-content">
+                  <div className="alert-priority">{alert.priority} Priority</div>
+                  <div className="alert-message">{alert.message}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="quick-stats">
+            <h3 className="section-heading">Quick Stats</h3>
+            <div className="quick-stat-item">
+              <div className="quick-stat-label">Approval Rate</div>
+              <div className="quick-stat-value">{quickStats.approval_rate}%</div>
+            </div>
+            <div className="quick-stat-item">
+              <div className="quick-stat-label">Avg. Processing Time</div>
+              <div className="quick-stat-value">{quickStats.avg_processing_time} days</div>
+            </div>
+            <div className="quick-stat-item">
+              <div className="quick-stat-label">Customer Satisfaction</div>
+              <div className="quick-stat-value">{quickStats.customer_satisfaction}/5</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
   );
 };
 

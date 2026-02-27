@@ -30,16 +30,25 @@ def get_db():
 def get_overview(db: Session = Depends(get_db)):
     """Get overview statistics for admin dashboard"""
     try:
+        # Total users with insurance policies
         total_users = db.query(models.User).count()
-        active_users = db.query(models.User).filter(models.User.status == "Active").count()
-        total_claims = db.query(models.Claim).count()  # Fixed: Count actual claims, not ClaimStats
-        fraud_alerts = db.query(models.FraudRule).count()
+        
+        # Active policyholders
+        active_policies = db.query(models.User).filter(models.User.status == "Active").count()
+        
+        # Total claims submitted
+        total_claims = db.query(models.Claim).count()
+        
+        # High-risk claims (Under Review or Rejected status)
+        high_risk_claims = db.query(models.Claim).filter(
+            models.Claim.status.in_(["Under Review", "Rejected"])
+        ).count()
 
         return {
             "total_users": total_users,
-            "active_policies": active_users,
+            "active_policies": active_policies,
             "claims": total_claims,
-            "fraud_alerts": fraud_alerts,
+            "fraud_alerts": high_risk_claims,
         }
     except Exception as e:
         raise HTTPException(
@@ -173,6 +182,60 @@ def create_fraud_rule(rule: schemas.FraudRuleCreate, db: Session = Depends(get_d
         )
 
 
+@router.put("/fraud-rules/{rule_id}", response_model=schemas.FraudRuleResponse)
+def update_fraud_rule(rule_id: int, rule_update: schemas.FraudRuleUpdate, db: Session = Depends(get_db)):
+    """Update a fraud rule by ID"""
+    try:
+        rule = db.query(models.FraudRule).filter(models.FraudRule.id == rule_id).first()
+        if not rule:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Fraud rule not found",
+            )
+
+        # Update only provided fields
+        update_data = rule_update.model_dump(exclude_unset=True)
+        for key, value in update_data.items():
+            setattr(rule, key, value)
+
+        db.commit()
+        db.refresh(rule)
+        return rule
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error updating fraud rule: {str(e)}",
+        )
+
+
+@router.put("/fraud-rules/{rule_id}/toggle-status", response_model=schemas.FraudRuleResponse)
+def toggle_fraud_rule_status(rule_id: int, db: Session = Depends(get_db)):
+    """Toggle fraud rule status between Active and Inactive"""
+    try:
+        rule = db.query(models.FraudRule).filter(models.FraudRule.id == rule_id).first()
+        if not rule:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Fraud rule not found",
+            )
+
+        rule.status = "Inactive" if rule.status == "Active" else "Active"
+        db.commit()
+        db.refresh(rule)
+        return rule
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error toggling fraud rule status: {str(e)}",
+        )
+
+
 @router.delete("/fraud-rules/{rule_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_fraud_rule(rule_id: int, db: Session = Depends(get_db)):
     """Delete a fraud rule by ID"""
@@ -205,67 +268,8 @@ def get_claims(db: Session = Depends(get_db)):
     """Get all claims"""
     try:
         claims = db.query(models.Claim).all()
-        
-        # If no claims exist, create sample claims
-        if not claims:
-            sample_claims = [
-                {
-                    "claim_id": "CLM-001",
-                    "claimant": "Rajesh Kumar",
-                    "amount": "₹45,000",
-                    "status": "Approved",
-                    "date": "Feb 18, 2026",
-                    "claim_type": "Auto",
-                    "priority": "High",
-                },
-                {
-                    "claim_id": "CLM-002",
-                    "claimant": "Priya Singh",
-                    "amount": "₹28,500",
-                    "status": "Pending",
-                    "date": "Feb 17, 2026",
-                    "claim_type": "Health",
-                    "priority": "Medium",
-                },
-                {
-                    "claim_id": "CLM-003",
-                    "claimant": "Amit Patel",
-                    "amount": "₹62,300",
-                    "status": "Under Review",
-                    "date": "Feb 16, 2026",
-                    "claim_type": "Property",
-                    "priority": "High",
-                },
-                {
-                    "claim_id": "CLM-004",
-                    "claimant": "Neha Sharma",
-                    "amount": "₹15,800",
-                    "status": "Rejected",
-                    "date": "Feb 15, 2026",
-                    "claim_type": "Travel",
-                    "priority": "Low",
-                },
-                {
-                    "claim_id": "CLM-005",
-                    "claimant": "Vikram Desai",
-                    "amount": "₹91,200",
-                    "status": "Approved",
-                    "date": "Feb 14, 2026",
-                    "claim_type": "Auto",
-                    "priority": "High",
-                },
-            ]
-            
-            for claim_data in sample_claims:
-                claim = models.Claim(**claim_data)
-                db.add(claim)
-            
-            db.commit()
-            claims = db.query(models.Claim).all()
-        
         return claims
     except Exception as e:
-        db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error fetching claims: {str(e)}",
@@ -396,29 +400,142 @@ def get_analytics(db: Session = Depends(get_db)):
     """Get analytics data for claims per month"""
     try:
         stats = db.query(models.ClaimStats).all()
-        
-        # If no data exists, create sample data
-        if not stats:
-            sample_data = [
-                {"month": "Jan", "claims": 45},
-                {"month": "Feb", "claims": 52},
-                {"month": "Mar", "claims": 38},
-                {"month": "Apr", "claims": 61},
-                {"month": "May", "claims": 48},
-                {"month": "Jun", "claims": 55},
-            ]
-            
-            for data in sample_data:
-                claim_stat = models.ClaimStats(**data)
-                db.add(claim_stat)
-            
-            db.commit()
-            stats = db.query(models.ClaimStats).all()
-        
         return stats
     except Exception as e:
-        db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error fetching analytics: {str(e)}",
+        )
+
+
+@router.get("/quick-stats")
+def get_quick_stats(db: Session = Depends(get_db)):
+    """Get quick stats for dashboard with real data"""
+    try:
+        all_claims = db.query(models.Claim).all()
+        
+        if not all_claims:
+            return {
+                "approval_rate": 0,
+                "avg_processing_time": 0,
+                "customer_satisfaction": 0
+            }
+        
+        # Calculate Approval Rate
+        total_claims = len(all_claims)
+        approved_claims = sum(1 for c in all_claims if c.status == "Approved")
+        approval_rate = (approved_claims / total_claims * 100) if total_claims > 0 else 0
+        
+        # Calculate Average Processing Time (in days)
+        # Based on the date field, we'll estimate average days to process
+        from datetime import datetime
+        
+        processing_times = []
+        for claim in all_claims:
+            try:
+                claim_date = datetime.strptime(claim.date, "%b %d, %Y")
+                current_date = datetime.now()
+                days_to_process = (current_date - claim_date).days
+                if days_to_process > 0:
+                    processing_times.append(days_to_process)
+            except:
+                pass
+        
+        avg_processing_time = sum(processing_times) / len(processing_times) if processing_times else 3.5
+        
+        # Calculate Customer Satisfaction (derived from approval rate and claim health)
+        # Formula: (Approval Rate * 0.7) + (Low Rejection Rate * 0.3) normalized to 5 scale
+        rejection_rate = ((total_claims - approved_claims) / total_claims * 100) if total_claims > 0 else 0
+        satisfaction_score = ((approval_rate * 0.7 + (100 - rejection_rate) * 0.3) / 100) * 5
+        customer_satisfaction = round(satisfaction_score, 1)
+        
+        return {
+            "approval_rate": round(approval_rate, 1),
+            "avg_processing_time": round(avg_processing_time, 1),
+            "customer_satisfaction": customer_satisfaction
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error calculating quick stats: {str(e)}",
+        )
+
+
+@router.get("/system-alerts")
+def get_system_alerts(db: Session = Depends(get_db)):
+    """Get real-time system alerts based on actual database data"""
+    try:
+        all_claims = db.query(models.Claim).all()
+        
+        alerts = []
+        
+        # High Priority Alert: High-Risk Claims Pending Review
+        under_review_claims = sum(1 for c in all_claims if c.status == "Under Review")
+        rejected_claims = sum(1 for c in all_claims if c.status == "Rejected")
+        high_risk_count = under_review_claims + rejected_claims
+        
+        if high_risk_count > 0:
+            alerts.append({
+                "priority": "High",
+                "icon": "⚠️",
+                "message": f"{high_risk_count} high-risk claims pending review",
+                "type": "warning"
+            })
+        else:
+            alerts.append({
+                "priority": "High",
+                "icon": "✅",
+                "message": "No high-risk claims - All clear",
+                "type": "success"
+            })
+        
+        # Medium Priority Alert: Claims Under Review Status
+        pending_claims = sum(1 for c in all_claims if c.status == "Pending")
+        
+        if pending_claims > 0:
+            alerts.append({
+                "priority": "Medium",
+                "icon": "⏳",
+                "message": f"{pending_claims} claims awaiting approval",
+                "type": "info"
+            })
+        else:
+            alerts.append({
+                "priority": "Medium",
+                "icon": "✅",
+                "message": "All pending claims processed",
+                "type": "success"
+            })
+        
+        # Info Alert: System Health Status
+        total_claims = len(all_claims)
+        approved_claims = sum(1 for c in all_claims if c.status == "Approved")
+        
+        if total_claims > 0:
+            approval_rate = (approved_claims / total_claims * 100)
+            if approval_rate >= 80:
+                system_status = "Insurance CRC system operating at peak efficiency"
+                status_type = "success"
+            elif approval_rate >= 50:
+                system_status = "Insurance CRC system operating normally"
+                status_type = "success"
+            else:
+                system_status = "Insurance CRC system requires attention"
+                status_type = "info"
+        else:
+            system_status = "Insurance CRC system ready for operations"
+            status_type = "success"
+        
+        alerts.append({
+            "priority": "Info",
+            "icon": "ℹ️",
+            "message": system_status,
+            "type": status_type
+        })
+        
+        return {"alerts": alerts}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error fetching system alerts: {str(e)}",
         )

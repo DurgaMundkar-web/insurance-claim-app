@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { getFraudRules, createFraudRule, deleteFraudRule } from "../services/adminService";
+import { 
+  getFraudRules, 
+  createFraudRule, 
+  deleteFraudRule,
+  updateFraudRule,
+  toggleFraudRuleStatus
+} from "../services/adminService";
 import "../styles/AdminDashboard.css";
 
 const FraudRules = () => {
@@ -7,7 +13,14 @@ const FraudRules = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [newRule, setNewRule] = useState({ name: "", description: "" });
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingRule, setEditingRule] = useState(null);
+  const [newRule, setNewRule] = useState({ 
+    name: "", 
+    description: "", 
+    priority: "Medium",
+    status: "Active" 
+  });
 
   useEffect(() => {
     fetchRules();
@@ -35,11 +48,43 @@ const FraudRules = () => {
 
     try {
       await createFraudRule(newRule);
-      setNewRule({ name: "", description: "" });
+      setNewRule({ name: "", description: "", priority: "Medium", status: "Active" });
       setShowModal(false);
       fetchRules();
     } catch (err) {
       alert("Failed to add fraud rule");
+      console.error(err);
+    }
+  };
+
+  const handleEditRule = (rule) => {
+    setEditingRule(rule);
+    setShowEditModal(true);
+  };
+
+  const handleUpdateRule = async () => {
+    if (!editingRule.name || !editingRule.description) {
+      alert("Please fill in all fields");
+      return;
+    }
+
+    try {
+      await updateFraudRule(editingRule.id, editingRule);
+      setShowEditModal(false);
+      setEditingRule(null);
+      fetchRules();
+    } catch (err) {
+      alert("Failed to update fraud rule");
+      console.error(err);
+    }
+  };
+
+  const handleToggleStatus = async (ruleId) => {
+    try {
+      await toggleFraudRuleStatus(ruleId);
+      fetchRules();
+    } catch (err) {
+      alert("Failed to toggle rule status");
       console.error(err);
     }
   };
@@ -88,7 +133,31 @@ const FraudRules = () => {
               <div className="rule-header">
                 <h3 className="rule-name">{rule.name}</h3>
                 <div className="rule-actions">
-                  <span className="pill pill-soft">Active</span>
+                  <span className={`pill-priority priority-${(rule.priority || 'Medium').toLowerCase()}`}>
+                    {rule.priority || 'Medium'}
+                  </span>
+                </div>
+              </div>
+              <p className="rule-description">{rule.description}</p>
+              <div className="rule-footer">
+                <span className={`status-badge ${(rule.status || 'Active').toLowerCase()}`}>
+                  {rule.status || 'Active'}
+                </span>
+                <div className="rule-buttons">
+                  <button
+                    className="btn-edit-small"
+                    onClick={() => handleEditRule(rule)}
+                    title="Edit Rule"
+                  >
+                    ✏️ Edit
+                  </button>
+                  <button
+                    className="btn-toggle-small"
+                    onClick={() => handleToggleStatus(rule.id)}
+                    title="Toggle Status"
+                  >
+                    {(rule.status || 'Active') === 'Active' ? '⏸️ Deactivate' : '▶️ Activate'}
+                  </button>
                   <button
                     className="btn-delete-small"
                     onClick={() => handleDeleteRule(rule.id)}
@@ -98,7 +167,6 @@ const FraudRules = () => {
                   </button>
                 </div>
               </div>
-              <p className="rule-description">{rule.description}</p>
             </div>
           ))
         )}
@@ -123,11 +191,60 @@ const FraudRules = () => {
               onChange={(e) => setNewRule({ ...newRule, description: e.target.value })}
               rows="4"
             />
+            <select
+              className="input-field"
+              value={newRule.priority}
+              onChange={(e) => setNewRule({ ...newRule, priority: e.target.value })}
+            >
+              <option value="Low">Low Priority</option>
+              <option value="Medium">Medium Priority</option>
+              <option value="High">High Priority</option>
+            </select>
             <div className="modal-actions">
               <button className="btn-primary" onClick={handleAddRule}>
                 Save Rule
               </button>
               <button className="btn-secondary" onClick={() => setShowModal(false)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Rule Modal */}
+      {showEditModal && editingRule && (
+        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+            <h3>Edit Fraud Rule</h3>
+            <input
+              type="text"
+              placeholder="Rule Name"
+              className="input-field"
+              value={editingRule.name}
+              onChange={(e) => setEditingRule({ ...editingRule, name: e.target.value })}
+            />
+            <textarea
+              placeholder="Rule Description"
+              className="textarea-field"
+              value={editingRule.description}
+              onChange={(e) => setEditingRule({ ...editingRule, description: e.target.value })}
+              rows="4"
+            />
+            <select
+              className="input-field"
+              value={editingRule.priority || "Medium"}
+              onChange={(e) => setEditingRule({ ...editingRule, priority: e.target.value })}
+            >
+              <option value="Low">Low Priority</option>
+              <option value="Medium">Medium Priority</option>
+              <option value="High">High Priority</option>
+            </select>
+            <div className="modal-actions">
+              <button className="btn-primary" onClick={handleUpdateRule}>
+                Update Rule
+              </button>
+              <button className="btn-secondary" onClick={() => setShowEditModal(false)}>
                 Cancel
               </button>
             </div>

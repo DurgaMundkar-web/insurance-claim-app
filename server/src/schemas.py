@@ -22,10 +22,19 @@ class UserResponse(UserBase):
 class FraudRuleBase(BaseModel):
     name: str
     description: str
+    priority: Optional[str] = "Medium"
+    status: Optional[str] = "Active"
 
 
 class FraudRuleCreate(FraudRuleBase):
     pass
+
+
+class FraudRuleUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    priority: Optional[str] = None
+    status: Optional[str] = None
 
 
 class FraudRuleResponse(FraudRuleBase):

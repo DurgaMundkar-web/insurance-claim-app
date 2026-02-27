@@ -9,7 +9,20 @@ function App() {
       <Signup />
       <Login />
     </div>
+    <Router>
+      <div style={{ display: "flex" }}>
+        <Sidebar />
+        <div style={{ flex: 1 }}>
+          <Navbar />
+          <Routes>
+            <Route path="/policies" element={<PolicyCatalog />} />
+            {/* Add more routes here */}
+          </Routes>
+        </div>
+      </div>
+    </Router>
   );
 }
 
+export default App;
 export default App;

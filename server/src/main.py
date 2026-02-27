@@ -1,5 +1,7 @@
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+<<<<<<< HEAD
 from .routers import admin
 from . import database
 from . import models
@@ -12,15 +14,25 @@ origins = [
     "http://127.0.0.1:3000",
     "http://10.24.107.34:3000",
 ]
+=======
+from src.database.core import Base, engine
+from src.auth.controller import router as auth_router
+from src.users.controller import router as users_router
+
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI()
+>>>>>>> main-group-A
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+<<<<<<< HEAD
 # Initialize database
 models.Base.metadata.create_all(bind=database.engine)
 
@@ -272,4 +284,11 @@ app.include_router(admin.router)
 @app.get("/health")
 def health_check():
     return {"status": "Backend is running"}
+=======
+app.include_router(auth_router)
+app.include_router(users_router)
+>>>>>>> main-group-A
 
+@app.get("/")
+def root():
+    return {"message": "FastAPI running"}

@@ -1,3 +1,4 @@
+import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AdminDashboard from "./features/admin/pages/AdminDashboard";
 
@@ -13,4 +14,3 @@ function App() {
 }
 
 export default App;
-<Route path="/" element={<h1>Insurance CRC Project</h1>} />

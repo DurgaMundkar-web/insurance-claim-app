@@ -1,6 +1,13 @@
 
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import React from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import Sidebar from "./layout/Sidebar";
+import Navbar from "./layout/Navbar";
+import PolicyCatalog from "./pages/PolicyCatalog";
+import { Routes, Route } from "react-router-dom";
+import Recommendation from "./pages/Recommendation";
 
 function App() {
   return (
@@ -9,6 +16,10 @@ function App() {
       <Signup />
       <Login />
     </div>
+    <Routes>
+      <Route path="/" element={<Recommendation />} />
+      <Route path="/recommendation" element={<Recommendation />} />
+    </Routes>
     <Router>
       <div style={{ display: "flex" }}>
         <Sidebar />
@@ -22,7 +33,8 @@ function App() {
       </div>
     </Router>
   );
+  );
 }
 
 export default App;
-export default App;
+export default App;export default App;export default App;

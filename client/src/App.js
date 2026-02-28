@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Navigate, NavLink, Route, Routes } from 'react-router-dom';
 import {
@@ -16,14 +15,6 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import { adminService, catalogService } from './services/apiService';
 import './App.css';
-=======
-<<<<<<< HEAD
-import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Dashboard from "./features/user/pages/Dashboard";
-import ActivePlan from "./features/user/pages/ActivePlan";
-import Compare from "./features/user/pages/Compare";
->>>>>>> Stashed changes
 
 const userNavItems = [
   { key: 'dashboard', label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
@@ -33,7 +24,6 @@ const userNavItems = [
 
 function UserSidebar() {
   return (
-<<<<<<< Updated upstream
     <aside className="ud-sidebar">
       <div className="ud-brand">
         <h2>InsureHub</h2>
@@ -65,32 +55,6 @@ function UserSidebar() {
         </button>
       </div>
     </aside>
-=======
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/active-plan" element={<ActivePlan />} />
-        <Route path="/compare" element={<Compare />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-    </BrowserRouter>
-=======
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Recommendation from './pages/Recommendation';
-
-function App() {
-  return (
-    <Router>
-      <Routes>
-        
-        <Route path="/" element={<Recommendation />} />
-        <Route path="/recommendations" element={<Recommendation />} />
-      </Routes>
-    </Router>
->>>>>>> c18de50 (added my feature folder and code)
->>>>>>> Stashed changes
   );
 }
 
@@ -248,7 +212,7 @@ function UserDashboardShell() {
       setMetrics({
         activePlans: policies.length,
         claims: overview?.claims ?? 0,
-            recommended: (recommendations?.total_count ?? 0) > 0 ? (recommendations?.total_count ?? 0) : 3,
+        recommended: (recommendations?.total_count ?? 0) > 0 ? (recommendations?.total_count ?? 0) : 3,
         recent: recentActivity?.total_count ?? 0,
       });
 

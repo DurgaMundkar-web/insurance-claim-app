@@ -1,8 +1,10 @@
-// client/src/components/RecommendationCard.js
 import React from 'react';
 import './RecommendationCard.css';
 
 const RecommendationCard = ({ plan }) => {
+  // If the data hasn't loaded yet, return null to prevent errors
+  if (!plan) return null;
+
   return (
     <div className="recommendation-card">
       <div className="card-header">
@@ -38,18 +40,21 @@ const RecommendationCard = ({ plan }) => {
           </div>
           <div className="stat-item">
             <label>Claim Ratio</label>
-            <p className="highlight-green">{plan.claimRatio}</p>
+            {/* UPDATED: Matches database column name 'claim_ratio' */}
+            <p className="highlight-green">{plan.claim_ratio}</p>
           </div>
           <div className="stat-item">
             <label>Risk Level</label>
-            <span className={`risk-tag ${plan.riskLevel.toLowerCase().replace(' ', '-')}`}>
-              {plan.riskLevel}
+            {/* UPDATED: Matches database column name 'risk_level' */}
+            <span className={`risk-tag ${plan.risk_level ? plan.risk_level.toLowerCase().replace(' ', '-') : ''}`}>
+              {plan.risk_level}
             </span>
           </div>
         </div>
 
         <div className="tags-container">
-          {plan.tags.map((tag, index) => (
+          {/* Ensure plan.tags exists and is an array before mapping */}
+          {plan.tags && Array.isArray(plan.tags) && plan.tags.map((tag, index) => (
             <span key={index} className="feature-tag">{tag}</span>
           ))}
         </div>

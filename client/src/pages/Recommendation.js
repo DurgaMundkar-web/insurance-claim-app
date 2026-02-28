@@ -1,93 +1,63 @@
-// client/src/pages/Recommendation.js
-import React from 'react';
-import Sidebar from '../layout/Sidebar'; // Import your Sidebar component
-import { recommendationsData } from '../data/recommendationsData'; // Import data
+import React, { useState, useEffect } from 'react';
+import Sidebar from '../layout/Sidebar';
+import RecommendationCard from '../components/RecommendationCard';
 import './Recommendation.css';
 
 const Recommendation = () => {
-  return (
-    <div className="dashboard-layout">
-      {/* 1. Sidebar remains fixed on the left */}
-      <Sidebar />
+  const [recommendations, setRecommendations] = useState([]); // Start as empty array
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-      {/* 2. Main content area with proper padding */}
-      <main className="recommendations-view">
-        <header className="page-header">
-          <div className="header-icon-container">✨</div>
-          <div className="header-text-container">
+  useEffect(() => {
+    fetch('http://localhost:8000/api/recommendations')
+      .then((res) => {
+        if (!res.ok) {
+           return res.json().then(err => { throw new Error(err.detail || "Server Error") });
+        }
+        return res.json();
+      })
+      .then((data) => {
+        // SAFETY CHECK: Ensure 'data' is actually a list before saving it
+        if (Array.isArray(data)) {
+          setRecommendations(data);
+        } else {
+          setRecommendations([]); 
+          console.error("Data is not a list:", data);
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
+
+  return (
+    <div className="dashboard-wrapper">
+      <Sidebar />
+      <main className="main-content">
+        <header className="content-header">
+          <div className="header-icon">✨</div>
+          <div className="header-text">
             <h1>AI Recommendations</h1>
-            <p>Personalized policy suggestions based on your profile</p>
+            <p>Personalized suggestions from the database</p>
           </div>
         </header>
 
-        <section className="recommendations-list">
-          {recommendationsData.map((policy, index) => (
-            <div key={policy.id} className="recommendation-card-container">
-              {/* Only show label for the first item */}
-              {index === 0 && (
-                <div className="top-recommendation-tag">
-                  <span className="icon">📈</span> TOP RECOMMENDATION
-                </div>
-              )}
+        <div className="policy-list-container">
+          {loading && <p>Loading data...</p>}
+          
+          {/* This error message will tell us what is wrong with the Database */}
+          {error && <p style={{ color: 'red' }}>Backend Error: {error}</p>}
 
-              <div className="card-inner-layout">
-                <div className="card-top-section">
-                  <div className="policy-meta">
-                    <span className="category-pill">{policy.type}</span>
-                    <h2 className="policy-name">{policy.title}</h2>
-                    <p className="provider-name">{policy.provider}</p>
-                  </div>
-                  <div className="match-score-display">
-                    <span className="score-value">{policy.match}%</span>
-                    <span className="score-label">Match</span>
-                  </div>
-                </div>
-
-                {/* Progress bar matching Figma green */}
-                <div className="match-progress-track">
-                  <div 
-                    className="match-progress-bar" 
-                    style={{ width: `${policy.match}%` }}
-                  ></div>
-                </div>
-
-                <div className="recommendation-insight">
-                  <span className="insight-label">Why we recommend this</span>
-                  <p className="insight-body">{policy.reason}</p>
-                </div>
-
-                <div className="policy-metrics-grid">
-                  <div className="metric">
-                    <label>Coverage</label>
-                    <p>{policy.coverage}</p>
-                  </div>
-                  <div className="metric">
-                    <label>Premium</label>
-                    <p>{policy.premium}</p>
-                  </div>
-                  <div className="metric">
-                    <label>Claim Ratio</label>
-                    <p className="success-text">{policy.claimRatio}</p>
-                  </div>
-                  <div className="metric">
-                    <label>Risk Level</label>
-                    <span className={`risk-status ${policy.riskLevel.toLowerCase().replace(' ', '-')}`}>
-                      {policy.riskLevel}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="benefits-tags">
-                  {policy.tags.map((tag, i) => (
-                    <span key={i} className="benefit-pill">{tag}</span>
-                  ))}
-                </div>
-
-                <button className="primary-action-btn">Select Plan</button>
-              </div>
-            </div>
-          ))}
-        </section>
+          {!loading && !error && recommendations.length > 0 ? (
+            recommendations.map((policy) => (
+              <RecommendationCard key={policy.id} plan={policy} />
+            ))
+          ) : (
+            !loading && !error && <p>No plans found in database.</p>
+          )}
+        </div>
       </main>
     </div>
   );

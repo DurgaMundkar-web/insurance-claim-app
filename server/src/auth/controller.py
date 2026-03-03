@@ -28,3 +28,14 @@ def login(email: str, password: str, db: Session = Depends(get_db)):
 
     token = create_token({"sub": user.email})
     return {"access_token": token}
+from fastapi import APIRouter
+
+router = APIRouter()
+
+@router.post("/login")
+def login():
+    return {"message": "Login successful"}
+
+@router.post("/signup")
+def signup():
+    return {"message": "Signup successful"}

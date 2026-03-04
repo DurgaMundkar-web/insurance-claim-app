@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { getOverview } from "../services/adminService";
+import { adminService } from "../../../services/apiService";
 import "../styles/AdminDashboard.css";
 
 const OverviewCards = () => {
@@ -15,6 +16,7 @@ const OverviewCards = () => {
     customer_satisfaction: 0,
   });
   const [systemAlerts, setSystemAlerts] = useState([]);
+  const [recentActivities, setRecentActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -25,14 +27,16 @@ const OverviewCards = () => {
   const fetchOverview = async () => {
     try {
       setLoading(true);
-      const [overviewData, quickStatsData, systemAlertsData] = await Promise.all([
+      const [overviewData, quickStatsData, systemAlertsData, recentActivityData] = await Promise.all([
         getOverview(),
-        fetch("http://localhost:8000/admin/quick-stats").then(res => res.json()),
-        fetch("http://localhost:8000/admin/system-alerts").then(res => res.json()),
+        adminService.getQuickStats(),
+        adminService.getSystemAlerts(),
+        adminService.getRecentActivity(),
       ]);
       setStats(overviewData);
       setQuickStats(quickStatsData);
       setSystemAlerts(systemAlertsData.alerts || []);
+      setRecentActivities(recentActivityData.activities || []);
       setError(null);
     } catch (err) {
       setError("Failed to load overview data");
@@ -107,7 +111,33 @@ const OverviewCards = () => {
         <div className="activity-section">
           <h3 className="section-heading">Recent Activity</h3>
           <div className="activity-content">
-            {/* Empty for now */}
+            {recentActivities.length > 0 ? (
+              <div className="activities-list">
+                {recentActivities.slice(0, 5).map((activity, index) => (
+                  <div key={index} className="activity-item">
+                    <div className="activity-timestamp">
+                      {new Date(activity.timestamp).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </div>
+                    <div className="activity-details">
+                      <div className="activity-action">
+                        <span className={`activity-badge activity-${activity.entity_type.toLowerCase()}`}>
+                          {activity.entity_type}
+                        </span>
+                        <span className="activity-title">{activity.action}</span>
+                      </div>
+                      <div className="activity-description">{activity.description}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="no-activities">No recent activities</div>
+            )}
           </div>
         </div>
 

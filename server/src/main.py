@@ -1,48 +1,47 @@
-
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-<<<<<<< HEAD
-from .routers import admin
-from . import database
-from . import models
+from dotenv import load_dotenv
+
+from .routers.admin import router as admin_router
+from .routers.catalog import router as catalog_router
+from . import database, models
 from sqlalchemy.orm import Session
 
-app = FastAPI(title="Insurance CRC Admin API")
+# Load environment variables
+load_dotenv()
 
-origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://10.24.107.34:3000",
-]
-=======
-from src.database.core import Base, engine
-from src.auth.controller import router as auth_router
-from src.users.controller import router as users_router
+# Initialize database
+database.init_db()
 
-Base.metadata.create_all(bind=engine)
+app = FastAPI(
+    title="Insurance CRC Management API",
+    description="Comprehensive insurance management system with admin dashboard",
+    version="1.0.0"
+)
 
-app = FastAPI()
->>>>>>> main-group-A
+# Configure CORS with environment-specific origins
+allowed_origins = os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:3000,http://127.0.0.1:3000,http://localhost:8000,http://127.0.0.1:8000"
+).split(",")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-<<<<<<< HEAD
-# Initialize database
-models.Base.metadata.create_all(bind=database.engine)
-
 
 def populate_sample_data():
-    """Populate database with realistic insurance data"""
+    """Populate database with realistic insurance data on first startup"""
     db = database.SessionLocal()
     try:
         # Check if data already exists
         if db.query(models.User).count() > 0:
+            print("✓ Database already contains data, skipping population")
             return
         
         # Add realistic insurance policyholders
@@ -102,26 +101,26 @@ def populate_sample_data():
                 "status": "Active"
             },
             {
-                "name": "Beneficiary Pattern Analysis",
-                "description": "Monitors unusual patterns in life insurance beneficiary claims",
-                "priority": "Low",
-                "status": "Active"
-            },
-            {
-                "name": "Property Over-valuation",
-                "description": "Detects property insurance claims with inflated property values",
+                "name": "Sudden Death Claims",
+                "description": "Investigates life insurance claims within the first 2 years of policy activation",
                 "priority": "Medium",
                 "status": "Active"
             },
             {
-                "name": "Late Claim Reporting",
-                "description": "Flags claims reported significantly after the incident date",
-                "priority": "Low",
-                "status": "Inactive"
+                "name": "Inconsistent Information",
+                "description": "Compares claim details with policyholder profile data",
+                "priority": "Medium",
+                "status": "Active"
             },
             {
-                "name": "Third-Party Involvement",
-                "description": "Identifies suspicious third-party involvement in claim submissions",
+                "name": "Claim Duplication",
+                "description": "Detects if same claim has been submitted multiple times",
+                "priority": "High",
+                "status": "Active"
+            },
+            {
+                "name": "Network Analysis",
+                "description": "Identifies networks of related policies with suspicious claim patterns",
                 "priority": "Medium",
                 "status": "Active"
             },
@@ -131,69 +130,177 @@ def populate_sample_data():
             rule = models.FraudRule(**rule_data)
             db.add(rule)
         
-        # Add realistic insurance claims
+        # Add insurance policies to database
+        policies = [
+            {
+                "name": "Comprehensive Health Shield",
+                "provider": "HealthFirst Insurance",
+                "policy_type": "Health",
+                "coverage": "₹5.0L",
+                "premium": "₹15,000/yr",
+                "claim_ratio": "95%",
+                "description": "Comprehensive health coverage for individuals",
+                "is_active": True
+            },
+            {
+                "name": "Family Health Plus",
+                "provider": "StarCare Insurance",
+                "policy_type": "Health",
+                "coverage": "₹10.0L",
+                "premium": "₹25,000/yr",
+                "claim_ratio": "92%",
+                "description": "Health coverage for entire family",
+                "is_active": True
+            },
+            {
+                "name": "Smart Drive Insurance",
+                "provider": "AutoSecure",
+                "policy_type": "Auto",
+                "coverage": "₹3.0L",
+                "premium": "₹8,000/yr",
+                "claim_ratio": "88%",
+                "description": "Comprehensive auto insurance coverage",
+                "is_active": True
+            },
+            {
+                "name": "Life Guard Premium",
+                "provider": "LifeSecure Insurance",
+                "policy_type": "Life",
+                "coverage": "₹20.0L",
+                "premium": "₹30,000/yr",
+                "claim_ratio": "98%",
+                "description": "Premium life insurance with guaranteed benefits",
+                "is_active": True
+            },
+            {
+                "name": "Home Protection Plan",
+                "provider": "HomeSafe Insurance",
+                "policy_type": "Home",
+                "coverage": "₹50.0L",
+                "premium": "₹12,000/yr",
+                "claim_ratio": "90%",
+                "description": "Complete home and property protection",
+                "is_active": True
+            },
+        ]
+        
+        for policy_data in policies:
+            policy = models.Policy(**policy_data)
+            db.add(policy)
+        
+        # Add insurance recommendations
+        recommendations = [
+            {
+                "category": "Health",
+                "title": "Comprehensive Health Shield",
+                "provider": "HealthFirst Insurance",
+                "match_score": 95.0,
+                "coverage": "₹5.0L",
+                "premium": "₹15,000/yr",
+                "claim_ratio": "95%",
+                "risk_level": "Low",
+                "why": "Best match for your age group and health profile.",
+                "family_health": "Provides extensive coverage for hereditary heart conditions noted in your history.",
+                "is_top_recommendation": True,
+                "is_active": True
+            },
+            {
+                "category": "Health",
+                "title": "Senior Citizen Care",
+                "provider": "ElderCare Insurance",
+                "match_score": 82.0,
+                "coverage": "₹7.5L",
+                "premium": "₹20,000/yr",
+                "claim_ratio": "94%",
+                "risk_level": "Medium",
+                "why": "Ideal for senior citizens with pre-existing conditions.",
+                "family_health": "Covers age-related chronic issues common in your family history.",
+                "is_top_recommendation": False,
+                "is_active": True
+            },
+            {
+                "category": "Life",
+                "title": "Life Guard Premium",
+                "provider": "LifeSecure Insurance",
+                "match_score": 78.0,
+                "coverage": "₹20.0L",
+                "premium": "₹30,000/yr",
+                "claim_ratio": "98%",
+                "risk_level": "Low",
+                "why": "Long-term security with high coverage.",
+                "family_health": "Tailored protection based on genetic risk assessment.",
+                "is_top_recommendation": False,
+                "is_active": True
+            },
+        ]
+        
+        for rec_data in recommendations:
+            recommendation = models.Recommendation(**rec_data)
+            db.add(recommendation)
+        
+        # Add insurance claims
         claims = [
             {
                 "claim_id": "ICRC-2026-001",
                 "claimant": "Rajesh Kumar",
-                "amount": "₹1,85,000",
+                "amount": "₹45,000",
                 "status": "Approved",
-                "date": "Feb 15, 2026",
-                "claim_type": "Auto Insurance",
-                "priority": "High"
+                "date": "Feb 10, 2026",
+                "claim_type": "Health Insurance",
+                "priority": "Low"
             },
             {
                 "claim_id": "ICRC-2026-002",
                 "claimant": "Priya Singh",
-                "amount": "₹45,500",
-                "status": "Under Review",
-                "date": "Feb 18, 2026",
-                "claim_type": "Health Insurance",
+                "amount": "₹1,20,000",
+                "status": "Pending",
+                "date": "Feb 20, 2026",
+                "claim_type": "Auto Insurance",
                 "priority": "Medium"
             },
             {
                 "claim_id": "ICRC-2026-003",
                 "claimant": "Amit Patel",
-                "amount": "₹3,25,000",
-                "status": "Pending",
-                "date": "Feb 20, 2026",
-                "claim_type": "Property Insurance",
-                "priority": "High"
+                "amount": "₹78,900",
+                "status": "Approved",
+                "date": "Feb 08, 2026",
+                "claim_type": "Health Insurance",
+                "priority": "Low"
             },
             {
                 "claim_id": "ICRC-2026-004",
                 "claimant": "Neha Sharma",
-                "amount": "₹22,800",
-                "status": "Rejected",
-                "date": "Feb 12, 2026",
-                "claim_type": "Travel Insurance",
-                "priority": "Low"
+                "amount": "₹2,50,000",
+                "status": "Under Review",
+                "date": "Feb 22, 2026",
+                "claim_type": "Life Insurance",
+                "priority": "High"
             },
             {
                 "claim_id": "ICRC-2026-005",
                 "claimant": "Vikram Desai",
-                "amount": "₹2,15,000",
-                "status": "Approved",
-                "date": "Feb 10, 2026",
+                "amount": "₹65,500",
+                "status": "Rejected",
+                "date": "Feb 18, 2026",
                 "claim_type": "Auto Insurance",
-                "priority": "High"
+                "priority": "Medium"
             },
             {
                 "claim_id": "ICRC-2026-006",
                 "claimant": "Anjali Reddy",
-                "amount": "₹68,900",
+                "amount": "₹95,000",
                 "status": "Approved",
-                "date": "Feb 08, 2026",
+                "date": "Feb 12, 2026",
                 "claim_type": "Health Insurance",
-                "priority": "Medium"
+                "priority": "Low"
             },
             {
                 "claim_id": "ICRC-2026-007",
                 "claimant": "Sanjay Gupta",
-                "amount": "₹1,45,000",
+                "amount": "₹3,50,000",
                 "status": "Under Review",
-                "date": "Feb 22, 2026",
-                "claim_type": "Life Insurance",
+                "date": "Feb 23, 2026",
+                "claim_type": "Property Insurance",
                 "priority": "High"
             },
             {
@@ -278,17 +385,22 @@ async def startup_event():
 
 
 # Include routers
-app.include_router(admin.router)
+app.include_router(admin_router)
+app.include_router(catalog_router)
 
 
+# Health check endpoints
 @app.get("/health")
 def health_check():
-    return {"status": "Backend is running"}
-=======
-app.include_router(auth_router)
-app.include_router(users_router)
->>>>>>> main-group-A
+    """Health check endpoint"""
+    return {"status": "Backend is running", "service": "Insurance CRC API"}
+
 
 @app.get("/")
 def root():
-    return {"message": "FastAPI running"}
+    """Root endpoint"""
+    return {
+        "message": "Insurance CRC Management API",
+        "version": "1.0.0",
+        "docs": "/docs"
+    }

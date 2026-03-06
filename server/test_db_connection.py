@@ -10,6 +10,11 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 def test_database_connection():
+    """Pytest entrypoint: keep test style assert-based (no return value)."""
+    assert run_database_connection_check()
+
+
+def run_database_connection_check():
     """Test PostgreSQL database connection"""
     print("=" * 60)
     print("Testing PostgreSQL Database Connection")
@@ -93,5 +98,5 @@ def test_database_connection():
 
 
 if __name__ == "__main__":
-    success = test_database_connection()
+    success = run_database_connection_check()
     sys.exit(0 if success else 1)

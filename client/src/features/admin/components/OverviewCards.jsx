@@ -58,32 +58,24 @@ const OverviewCards = () => {
     {
       title: "Total Claims",
       value: stats.claims || 0,
-      change: "+8%",
-      changeLabel: "vs last month",
       icon: "📄",
       bgColor: "#ffffff",
     },
     {
       title: "High-Risk Claims",
       value: stats.fraud_alerts || 0,
-      change: "-12%",
-      changeLabel: "vs last month",
       icon: "⚠️",
       bgColor: "#ffffff",
     },
     {
       title: "Active Policies",
       value: stats.active_policies || 0,
-      change: "+5%",
-      changeLabel: "vs last month",
       icon: "🛡️",
       bgColor: "#ffffff",
     },
     {
       title: "Users with Plans",
       value: stats.total_users || 0,
-      change: "+3%",
-      changeLabel: "vs last month",
       icon: "👥",
       bgColor: "#ffffff",
     },
@@ -99,10 +91,6 @@ const OverviewCards = () => {
               <span className="stat-card-icon">{card.icon}</span>
             </div>
             <div className="stat-card-value">{card.value}</div>
-            <div className="stat-card-change">
-              <span className="change-indicator">{card.change}</span>
-              <span className="change-label">{card.changeLabel}</span>
-            </div>
           </div>
         ))}
       </div>

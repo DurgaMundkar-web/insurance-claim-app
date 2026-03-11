@@ -1,16 +1,13 @@
+import os
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from . import models, database
-import os
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
+# Import local modules
+from . import models, database
 from .routers.admin import router as admin_router
 from .routers.catalog import router as catalog_router
-from . import database, models
-from sqlalchemy.orm import Session
 
 # Load environment variables
 load_dotenv()
@@ -30,56 +27,14 @@ allowed_origins = os.getenv(
     "http://localhost:3000,http://127.0.0.1:3000,http://localhost:8000,http://127.0.0.1:8000"
 ).split(",")
 
-# Enable CORS so React (port 3000) can access FastAPI (port 8000)
+# Enable CORS logic
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_origins=["*"],
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-
-app = FastAPI()
-
-
-origins = [
-    "http://localhost:3000",
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
     allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-@app.get("/api/recommendations")
-def get_insurance_deals(db: Session = Depends(database.get_db)):
-    try:
-        deals = db.query(models.Recommendation).all()
-        return deals
-    except Exception as e:
-        # This will send the EXACT error message to your browser
-        raise HTTPException(status_code=500, detail=str(e))
-=======
-<<<<<<< HEAD
-app.include_router(auth_router)
-app.include_router(users_router)
-
-@app.get("/")
-def root():
-    return {"message": "FastAPI running"}
-=======
-@app.get("/health")
-def health_check():
-    return {"status": "Backend is running"}
-
->>>>>>> 9ebdf3ebc0e951d44b538f0d30d83c7bef023b2f
->>>>>>> main-group-A
-=======
 
 def populate_sample_data():
     """Populate database with realistic insurance data on first startup"""
@@ -110,66 +65,16 @@ def populate_sample_data():
         
         # Add realistic fraud detection rules
         fraud_rules = [
-            {
-                "name": "Multiple Claims Same Period",
-                "description": "Flags policyholders submitting multiple high-value claims within 30 days",
-                "priority": "High",
-                "status": "Active"
-            },
-            {
-                "name": "Claim Amount Exceeds Policy Limit",
-                "description": "Detects claims where requested amount is significantly higher than policy coverage",
-                "priority": "High",
-                "status": "Active"
-            },
-            {
-                "name": "Suspicious Medical Bills",
-                "description": "Identifies medical claims with unusual billing patterns or unverified providers",
-                "priority": "Medium",
-                "status": "Active"
-            },
-            {
-                "name": "Vehicle Damage Inconsistency",
-                "description": "Checks if reported vehicle damage matches accident description",
-                "priority": "High",
-                "status": "Active"
-            },
-            {
-                "name": "Pre-existing Condition Claim",
-                "description": "Flags health insurance claims for conditions that existed before policy activation",
-                "priority": "Medium",
-                "status": "Active"
-            },
-            {
-                "name": "Document Forgery Detection",
-                "description": "Uses AI to detect forged or manipulated claim documents and receipts",
-                "priority": "High",
-                "status": "Active"
-            },
-            {
-                "name": "Sudden Death Claims",
-                "description": "Investigates life insurance claims within the first 2 years of policy activation",
-                "priority": "Medium",
-                "status": "Active"
-            },
-            {
-                "name": "Inconsistent Information",
-                "description": "Compares claim details with policyholder profile data",
-                "priority": "Medium",
-                "status": "Active"
-            },
-            {
-                "name": "Claim Duplication",
-                "description": "Detects if same claim has been submitted multiple times",
-                "priority": "High",
-                "status": "Active"
-            },
-            {
-                "name": "Network Analysis",
-                "description": "Identifies networks of related policies with suspicious claim patterns",
-                "priority": "Medium",
-                "status": "Active"
-            },
+            {"name": "Multiple Claims Same Period", "description": "Flags policyholders submitting multiple high-value claims within 30 days", "priority": "High", "status": "Active"},
+            {"name": "Claim Amount Exceeds Policy Limit", "description": "Detects claims where requested amount is significantly higher than policy coverage", "priority": "High", "status": "Active"},
+            {"name": "Suspicious Medical Bills", "description": "Identifies medical claims with unusual billing patterns or unverified providers", "priority": "Medium", "status": "Active"},
+            {"name": "Vehicle Damage Inconsistency", "description": "Checks if reported vehicle damage matches accident description", "priority": "High", "status": "Active"},
+            {"name": "Pre-existing Condition Claim", "description": "Flags health insurance claims for conditions that existed before policy activation", "priority": "Medium", "status": "Active"},
+            {"name": "Document Forgery Detection", "description": "Uses AI to detect forged or manipulated claim documents and receipts", "priority": "High", "status": "Active"},
+            {"name": "Sudden Death Claims", "description": "Investigates life insurance claims within the first 2 years of policy activation", "priority": "Medium", "status": "Active"},
+            {"name": "Inconsistent Information", "description": "Compares claim details with policyholder profile data", "priority": "Medium", "status": "Active"},
+            {"name": "Claim Duplication", "description": "Detects if same claim has been submitted multiple times", "priority": "High", "status": "Active"},
+            {"name": "Network Analysis", "description": "Identifies networks of related policies with suspicious claim patterns", "priority": "Medium", "status": "Active"},
         ]
         
         for rule_data in fraud_rules:
@@ -178,56 +83,11 @@ def populate_sample_data():
         
         # Add insurance policies to database
         policies = [
-            {
-                "name": "Comprehensive Health Shield",
-                "provider": "HealthFirst Insurance",
-                "policy_type": "Health",
-                "coverage": "₹5.0L",
-                "premium": "₹15,000/yr",
-                "claim_ratio": "95%",
-                "description": "Comprehensive health coverage for individuals",
-                "is_active": True
-            },
-            {
-                "name": "Family Health Plus",
-                "provider": "StarCare Insurance",
-                "policy_type": "Health",
-                "coverage": "₹10.0L",
-                "premium": "₹25,000/yr",
-                "claim_ratio": "92%",
-                "description": "Health coverage for entire family",
-                "is_active": True
-            },
-            {
-                "name": "Smart Drive Insurance",
-                "provider": "AutoSecure",
-                "policy_type": "Auto",
-                "coverage": "₹3.0L",
-                "premium": "₹8,000/yr",
-                "claim_ratio": "88%",
-                "description": "Comprehensive auto insurance coverage",
-                "is_active": True
-            },
-            {
-                "name": "Life Guard Premium",
-                "provider": "LifeSecure Insurance",
-                "policy_type": "Life",
-                "coverage": "₹20.0L",
-                "premium": "₹30,000/yr",
-                "claim_ratio": "98%",
-                "description": "Premium life insurance with guaranteed benefits",
-                "is_active": True
-            },
-            {
-                "name": "Home Protection Plan",
-                "provider": "HomeSafe Insurance",
-                "policy_type": "Home",
-                "coverage": "₹50.0L",
-                "premium": "₹12,000/yr",
-                "claim_ratio": "90%",
-                "description": "Complete home and property protection",
-                "is_active": True
-            },
+            {"name": "Comprehensive Health Shield", "provider": "HealthFirst Insurance", "policy_type": "Health", "coverage": "₹5.0L", "premium": "₹15,000/yr", "claim_ratio": "95%", "description": "Comprehensive health coverage for individuals", "is_active": True},
+            {"name": "Family Health Plus", "provider": "StarCare Insurance", "policy_type": "Health", "coverage": "₹10.0L", "premium": "₹25,000/yr", "claim_ratio": "92%", "description": "Health coverage for entire family", "is_active": True},
+            {"name": "Smart Drive Insurance", "provider": "AutoSecure", "policy_type": "Auto", "coverage": "₹3.0L", "premium": "₹8,000/yr", "claim_ratio": "88%", "description": "Comprehensive auto insurance coverage", "is_active": True},
+            {"name": "Life Guard Premium", "provider": "LifeSecure Insurance", "policy_type": "Life", "coverage": "₹20.0L", "premium": "₹30,000/yr", "claim_ratio": "98%", "description": "Premium life insurance with guaranteed benefits", "is_active": True},
+            {"name": "Home Protection Plan", "provider": "HomeSafe Insurance", "policy_type": "Home", "coverage": "₹50.0L", "premium": "₹12,000/yr", "claim_ratio": "90%", "description": "Complete home and property protection", "is_active": True},
         ]
         
         for policy_data in policies:
@@ -286,128 +146,29 @@ def populate_sample_data():
         
         # Add insurance claims
         claims = [
-            {
-                "claim_id": "ICRC-2026-001",
-                "claimant": "Rajesh Kumar",
-                "amount": "₹45,000",
-                "status": "Approved",
-                "date": "Feb 10, 2026",
-                "claim_type": "Health Insurance",
-                "priority": "Low"
-            },
-            {
-                "claim_id": "ICRC-2026-002",
-                "claimant": "Priya Singh",
-                "amount": "₹1,20,000",
-                "status": "Pending",
-                "date": "Feb 20, 2026",
-                "claim_type": "Auto Insurance",
-                "priority": "Medium"
-            },
-            {
-                "claim_id": "ICRC-2026-003",
-                "claimant": "Amit Patel",
-                "amount": "₹78,900",
-                "status": "Approved",
-                "date": "Feb 08, 2026",
-                "claim_type": "Health Insurance",
-                "priority": "Low"
-            },
-            {
-                "claim_id": "ICRC-2026-004",
-                "claimant": "Neha Sharma",
-                "amount": "₹2,50,000",
-                "status": "Under Review",
-                "date": "Feb 22, 2026",
-                "claim_type": "Life Insurance",
-                "priority": "High"
-            },
-            {
-                "claim_id": "ICRC-2026-005",
-                "claimant": "Vikram Desai",
-                "amount": "₹65,500",
-                "status": "Rejected",
-                "date": "Feb 18, 2026",
-                "claim_type": "Auto Insurance",
-                "priority": "Medium"
-            },
-            {
-                "claim_id": "ICRC-2026-006",
-                "claimant": "Anjali Reddy",
-                "amount": "₹95,000",
-                "status": "Approved",
-                "date": "Feb 12, 2026",
-                "claim_type": "Health Insurance",
-                "priority": "Low"
-            },
-            {
-                "claim_id": "ICRC-2026-007",
-                "claimant": "Sanjay Gupta",
-                "amount": "₹3,50,000",
-                "status": "Under Review",
-                "date": "Feb 23, 2026",
-                "claim_type": "Property Insurance",
-                "priority": "High"
-            },
-            {
-                "claim_id": "ICRC-2026-008",
-                "claimant": "Kavita Iyer",
-                "amount": "₹35,200",
-                "status": "Approved",
-                "date": "Feb 05, 2026",
-                "claim_type": "Health Insurance",
-                "priority": "Low"
-            },
-            {
-                "claim_id": "ICRC-2026-009",
-                "claimant": "Rahul Mehta",
-                "amount": "₹4,50,000",
-                "status": "Under Review",
-                "date": "Feb 24, 2026",
-                "claim_type": "Property Insurance",
-                "priority": "High"
-            },
-            {
-                "claim_id": "ICRC-2026-010",
-                "claimant": "Deepa Nair",
-                "amount": "₹18,500",
-                "status": "Rejected",
-                "date": "Feb 14, 2026",
-                "claim_type": "Travel Insurance",
-                "priority": "Low"
-            },
-            {
-                "claim_id": "ICRC-2026-011",
-                "claimant": "Rajesh Kumar",
-                "amount": "₹92,000",
-                "status": "Pending",
-                "date": "Feb 25, 2026",
-                "claim_type": "Health Insurance",
-                "priority": "Medium"
-            },
-            {
-                "claim_id": "ICRC-2026-012",
-                "claimant": "Priya Singh",
-                "amount": "₹1,75,000",
-                "status": "Approved",
-                "date": "Feb 03, 2026",
-                "claim_type": "Auto Insurance",
-                "priority": "High"
-            },
+            {"claim_id": "ICRC-2026-001", "claimant": "Rajesh Kumar", "amount": "₹45,000", "status": "Approved", "date": "Feb 10, 2026", "claim_type": "Health Insurance", "priority": "Low"},
+            {"claim_id": "ICRC-2026-002", "claimant": "Priya Singh", "amount": "₹1,20,000", "status": "Pending", "date": "Feb 20, 2026", "claim_type": "Auto Insurance", "priority": "Medium"},
+            {"claim_id": "ICRC-2026-003", "claimant": "Amit Patel", "amount": "₹78,900", "status": "Approved", "date": "Feb 08, 2026", "claim_type": "Health Insurance", "priority": "Low"},
+            {"claim_id": "ICRC-2026-004", "claimant": "Neha Sharma", "amount": "₹2,50,000", "status": "Under Review", "date": "Feb 22, 2026", "claim_type": "Life Insurance", "priority": "High"},
+            {"claim_id": "ICRC-2026-005", "claimant": "Vikram Desai", "amount": "₹65,500", "status": "Rejected", "date": "Feb 18, 2026", "claim_type": "Auto Insurance", "priority": "Medium"},
+            {"claim_id": "ICRC-2026-006", "claimant": "Anjali Reddy", "amount": "₹95,000", "status": "Approved", "date": "Feb 12, 2026", "claim_type": "Health Insurance", "priority": "Low"},
+            {"claim_id": "ICRC-2026-007", "claimant": "Sanjay Gupta", "amount": "₹3,50,000", "status": "Under Review", "date": "Feb 23, 2026", "claim_type": "Property Insurance", "priority": "High"},
+            {"claim_id": "ICRC-2026-008", "claimant": "Kavita Iyer", "amount": "₹35,200", "status": "Approved", "date": "Feb 05, 2026", "claim_type": "Health Insurance", "priority": "Low"},
+            {"claim_id": "ICRC-2026-009", "claimant": "Rahul Mehta", "amount": "₹4,50,000", "status": "Under Review", "date": "Feb 24, 2026", "claim_type": "Property Insurance", "priority": "High"},
+            {"claim_id": "ICRC-2026-010", "claimant": "Deepa Nair", "amount": "₹18,500", "status": "Rejected", "date": "Feb 14, 2026", "claim_type": "Travel Insurance", "priority": "Low"},
+            {"claim_id": "ICRC-2026-011", "claimant": "Rajesh Kumar", "amount": "₹92,000", "status": "Pending", "date": "Feb 25, 2026", "claim_type": "Health Insurance", "priority": "Medium"},
+            {"claim_id": "ICRC-2026-012", "claimant": "Priya Singh", "amount": "₹1,75,000", "status": "Approved", "date": "Feb 03, 2026", "claim_type": "Auto Insurance", "priority": "High"},
         ]
         
         for claim_data in claims:
             claim = models.Claim(**claim_data)
             db.add(claim)
         
-        # Add analytics data (monthly claim statistics)
+        # Add analytics data
         analytics_data = [
-            {"month": "Jan", "claims": 78},
-            {"month": "Feb", "claims": 65},
-            {"month": "Mar", "claims": 82},
-            {"month": "Apr", "claims": 71},
-            {"month": "May", "claims": 89},
-            {"month": "Jun", "claims": 76},
+            {"month": "Jan", "claims": 78}, {"month": "Feb", "claims": 65},
+            {"month": "Mar", "claims": 82}, {"month": "Apr", "claims": 71},
+            {"month": "May", "claims": 89}, {"month": "Jun", "claims": 76},
         ]
         
         for data in analytics_data:
@@ -423,24 +184,20 @@ def populate_sample_data():
     finally:
         db.close()
 
-
 @app.on_event("startup")
 async def startup_event():
     """Run on application startup"""
     populate_sample_data()
 
-
 # Include routers
 app.include_router(admin_router)
 app.include_router(catalog_router)
 
-
-# Health check endpoints
+# Endpoints
 @app.get("/health")
 def health_check():
     """Health check endpoint"""
     return {"status": "Backend is running", "service": "Insurance CRC API"}
-
 
 @app.get("/")
 def root():
@@ -451,3 +208,10 @@ def root():
         "docs": "/docs"
     }
 
+@app.get("/api/recommendations")
+def get_insurance_deals(db: Session = Depends(database.get_db)):
+    try:
+        deals = db.query(models.Recommendation).all()
+        return deals
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

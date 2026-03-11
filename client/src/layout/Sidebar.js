@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // client/src/layout/Sidebar.js
 import React from 'react';
 import { NavLink } from 'react-router-dom';
@@ -32,7 +31,6 @@ const Sidebar = () => {
             <span className="nav-link-icon">{item.icon}</span>
             <span className="nav-link-text">{item.name}</span>
           </NavLink>
-=======
 import React from 'react';
 import './Sidebar.css';
 import { LayoutDashboard, ShieldCheck, Repeat, Stars, FileText, UserCircle } from 'lucide-react';
@@ -60,7 +58,6 @@ const Sidebar = () => {
             {item.icon}
             <span>{item.name}</span>
           </div>
->>>>>>> d71ab8d101a63c0ad838d9a49581f1f140cbee2f
         ))}
       </nav>
     </div>

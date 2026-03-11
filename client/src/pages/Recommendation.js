@@ -1,15 +1,11 @@
-<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../layout/Sidebar';
-=======
 import React from 'react';
 import MainLayout from '../layout/MainLayout';
->>>>>>> d71ab8d101a63c0ad838d9a49581f1f140cbee2f
 import RecommendationCard from '../components/RecommendationCard';
 import './Recommendation.css';
 
 const Recommendation = () => {
-<<<<<<< HEAD
   const [recommendations, setRecommendations] = useState([]); // Start as empty array
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -66,7 +62,6 @@ const Recommendation = () => {
         </div>
       </main>
     </div>
-=======
   return (
     <MainLayout>
       <div className="recommendations-container">
@@ -83,7 +78,6 @@ const Recommendation = () => {
         </div>
       </div>
     </MainLayout>
->>>>>>> d71ab8d101a63c0ad838d9a49581f1f140cbee2f
   );
 };
 

@@ -8,9 +8,7 @@ app = FastAPI()
 # Enable CORS so React (port 3000) can access FastAPI (port 8000)
 app.add_middleware(
     CORSMiddleware,
-<<<<<<< HEAD
     allow_origins=["http://localhost:3000"],
-=======
     allow_origins=["*"],
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -25,7 +23,6 @@ origins = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
->>>>>>> main-group-A
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -30,9 +30,3 @@ function App() {
 }
 
 export default App;
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 9ebdf3ebc0e951d44b538f0d30d83c7bef023b2f
->>>>>>> main-group-A

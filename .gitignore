@@ -45,3 +45,14 @@ htmlcov/
 ############################
 *.log
 
+
+# Database
+*.db
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# OS files
+.DS_Store
+Thumbs.db

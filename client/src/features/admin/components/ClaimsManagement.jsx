@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { getClaims, createClaim, deleteClaim } from "../services/adminService";
 import "../styles/AdminDashboard.css";
 
@@ -8,17 +8,28 @@ const ClaimsManagement = () => {
   const [error, setError] = useState(null);
   const [selectedClaim, setSelectedClaim] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState("view"); // "view", "edit", or "create"
+  const [modalType, setModalType] = useState("view"); // "view", "edit", "create"
 
-  useEffect(() => {
-    fetchClaims();
-  }, []);
+  // 1. Style Mapping Objects (Removes switch statement duplication)
+  const STATUS_MAP = {
+    Approved: "status-approved",
+    Pending: "status-pending",
+    "Under Review": "status-review",
+    Rejected: "status-rejected",
+  };
 
-  const fetchClaims = async () => {
+  const PRIORITY_MAP = {
+    High: "priority-high",
+    Medium: "priority-medium",
+    Low: "priority-low",
+  };
+
+  // 2. Data Fetching
+  const fetchClaims = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getClaims();
-      setClaims(data);
+      setClaims(data || []);
       setError(null);
     } catch (err) {
       setError("Failed to load claims data");
@@ -26,51 +37,16 @@ const ClaimsManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "Approved":
-        return "status-approved";
-      case "Pending":
-        return "status-pending";
-      case "Under Review":
-        return "status-review";
-      case "Rejected":
-        return "status-rejected";
-      default:
-        return "status-pending";
-    }
-  };
+  useEffect(() => {
+    fetchClaims();
+  }, [fetchClaims]);
 
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case "High":
-        return "priority-high";
-      case "Medium":
-        return "priority-medium";
-      case "Low":
-        return "priority-low";
-      default:
-        return "priority-low";
-    }
-  };
-
-  const handleViewDetails = (claim) => {
-    setSelectedClaim(claim);
-    setModalType("view");
-    setShowModal(true);
-  };
-
-  const handleEdit = (claim) => {
-    setSelectedClaim(claim);
-    setModalType("edit");
-    setShowModal(true);
-  };
-
-  const handleAddNewClaim = () => {
-    // Create empty claim template for new entry
-    const emptyClaim = {
+  // 3. Handlers
+  const handleOpenModal = (type, claim = null) => {
+    setModalType(type);
+    setSelectedClaim(claim || {
       claim_id: "",
       claimant: "",
       amount: "",
@@ -78,9 +54,7 @@ const ClaimsManagement = () => {
       status: "Pending",
       priority: "Low",
       date: new Date().toISOString().split('T')[0]
-    };
-    setSelectedClaim(emptyClaim);
-    setModalType("create");
+    });
     setShowModal(true);
   };
 
@@ -89,318 +63,116 @@ const ClaimsManagement = () => {
     setSelectedClaim(null);
   };
 
-  const handleDeleteClaim = async (claimId) => {
-    if (window.confirm("Are you sure you want to delete this claim?")) {
+  const handleSave = async () => {
+    try {
+      if (modalType === "create") {
+        await createClaim(selectedClaim);
+      } else {
+        console.log("Updating claim:", selectedClaim);
+      }
+      handleCloseModal();
+      fetchClaims();
+    } catch (err) {
+      alert("Error processing claim");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Confirm deletion?")) {
       try {
-        await deleteClaim(claimId);
+        await deleteClaim(id);
         fetchClaims();
       } catch (err) {
-        alert("Failed to delete claim");
-        console.error(err);
+        alert("Delete failed");
       }
     }
   };
 
-  const handleSaveEdit = async () => {
-    try {
-      if (modalType === "create") {
-        // Create new claim
-        await createClaim(selectedClaim);
-        alert("New claim created successfully!");
-      } else if (modalType === "edit") {
-        // Update existing claim - in real app, you'd send to backend
-        console.log("Updating claim:", selectedClaim);
-        alert("Claim updated successfully!");
-      }
-      handleCloseModal();
-      fetchClaims(); // Refresh the claims list
-    } catch (error) {
-      console.error("Error saving claim:", error);
-      alert("Failed to save claim. Please try again.");
-    }
-  };
+  if (loading) return <div className="loading">Loading claims...</div>;
+  if (error) return <div className="error">{error}</div>;
 
   return (
     <div className="claims-management">
-      <div className="section-header">
+      <header className="section-header">
         <div>
           <h2>All Claims</h2>
-          <p className="section-subtitle">View and manage all insurance claims in one place.</p>
+          <p className="section-subtitle">Manage insurance claims in one place.</p>
         </div>
-        <div className="header-actions">
-          <button className="btn-primary" onClick={handleAddNewClaim}>+ New Claim</button>
-        </div>
+        <button className="btn-primary" onClick={() => handleOpenModal("create")}>+ New Claim</button>
+      </header>
+
+      <div className="claims-table-container">
+        <table className="claims-table">
+          <thead>
+            <tr>
+              <th>ID</th><th>Claimant</th><th>Amount</th><th>Type</th><th>Status</th><th>Priority</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {claims.map((c) => (
+              <tr key={c.id} className="claim-row">
+                <td><strong>{c.claim_id}</strong></td>
+                <td>{c.claimant}</td>
+                <td>{c.amount}</td>
+                <td><span className="claim-type-badge">{c.claim_type}</span></td>
+                <td><span className={`claim-status ${STATUS_MAP[c.status] || "status-pending"}`}>{c.status}</span></td>
+                <td><span className={`claim-priority ${PRIORITY_MAP[c.priority] || "priority-low"}`}>{c.priority}</span></td>
+                <td className="claim-actions-cell">
+                  <button onClick={() => handleOpenModal("view", c)}>👁️</button>
+                  <button onClick={() => handleOpenModal("edit", c)}>✏️</button>
+                  <button onClick={() => handleDelete(c.id)}>🗑️</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
-      {loading && <div className="loading">Loading claims...</div>}
-      {error && <div className="error">{error}</div>}
-
-      {!loading && !error && claims.length > 0 && (
-        <>
-          {/* Claims Table */}
-          <div className="claims-table-container">
-            <table className="claims-table">
-              <thead>
-                <tr>
-                  <th>Claim ID</th>
-                  <th>Claimant</th>
-                  <th>Amount</th>
-                  <th>Type</th>
-                  <th>Status</th>
-                  <th>Priority</th>
-                  <th>Date</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {claims.map((claim) => (
-                  <tr key={claim.id} className="claim-row">
-                    <td className="claim-id-cell">
-                      <strong>{claim.claim_id}</strong>
-                    </td>
-                    <td>{claim.claimant}</td>
-                    <td className="claim-amount-cell">{claim.amount}</td>
-                    <td>
-                      <span className="claim-type-badge">{claim.claim_type}</span>
-                    </td>
-                    <td>
-                      <span className={`claim-status ${getStatusColor(claim.status)}`}>
-                        {claim.status}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`claim-priority ${getPriorityColor(claim.priority)}`}>
-                        {claim.priority}
-                      </span>
-                    </td>
-                    <td className="claim-date-cell">{claim.date}</td>
-                    <td className="claim-actions-cell">
-                      <button
-                        className="btn-action-view"
-                        onClick={() => handleViewDetails(claim)}
-                        title="View details"
-                      >
-                        👁️ View
-                      </button>
-                      <button
-                        className="btn-action-edit"
-                        onClick={() => handleEdit(claim)}
-                        title="Edit claim"
-                      >
-                        ✏️ Edit
-                      </button>
-                      <button
-                        className="btn-action-delete"
-                        onClick={() => handleDeleteClaim(claim.id)}
-                        title="Delete claim"
-                      >
-                        🗑️ Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <div className="claims-summary">
+        {Object.entries(STATUS_MAP).map(([label, colorClass]) => (
+          <div key={label} className="summary-stat">
+            <div className="stat-value">{claims.filter(c => c.status === label).length}</div>
+            <div className="stat-label">{label}</div>
           </div>
+        ))}
+      </div>
 
-          {/* Claims Summary Stats */}
-          <div className="claims-summary">
-            <div className="summary-stat">
-              <div className="stat-value">{claims.length}</div>
-              <div className="stat-label">Total Claims</div>
-            </div>
-            <div className="summary-stat">
-              <div className="stat-value">{claims.filter(c => c.status === "Approved").length}</div>
-              <div className="stat-label">Approved</div>
-            </div>
-            <div className="summary-stat">
-              <div className="stat-value">{claims.filter(c => c.status === "Pending").length}</div>
-              <div className="stat-label">Pending</div>
-            </div>
-            <div className="summary-stat">
-              <div className="stat-value">{claims.filter(c => c.status === "Under Review").length}</div>
-              <div className="stat-label">Under Review</div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Modal for View/Edit */}
-      {showModal && selectedClaim && (
+      {showModal && (
         <div className="modal-overlay" onClick={handleCloseModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>
-                {modalType === "view" ? "Claim Details" : modalType === "edit" ? "Edit Claim" : "New Claim"}
-              </h3>
-              <button className="modal-close" onClick={handleCloseModal}>
-                ✕
-              </button>
+              <h3>{modalType.toUpperCase()} CLAIM</h3>
+              <button onClick={handleCloseModal}>✕</button>
             </div>
-
             <div className="modal-body">
+              {["claim_id", "claimant", "amount", "claim_type"].map(field => (
+                <div key={field} className="modal-field">
+                  <label>{field.replace("_", " ").toUpperCase()}</label>
+                  {modalType === "view" ? (
+                    <p className="modal-value">{selectedClaim[field]}</p>
+                  ) : (
+                    <input
+                      className="modal-input"
+                      value={selectedClaim[field]}
+                      onChange={e => setSelectedClaim({...selectedClaim, [field]: e.target.value})}
+                    />
+                  )}
+                </div>
+              ))}
               <div className="modal-field">
-                <label>Claim ID</label>
+                <label>STATUS</label>
                 {modalType === "view" ? (
-                  <p className="modal-value">{selectedClaim.claim_id}</p>
+                   <p className="modal-value">{selectedClaim.status}</p>
                 ) : (
-                  <input
-                    type="text"
-                    value={selectedClaim.claim_id}
-                    onChange={(e) =>
-                      setSelectedClaim({
-                        ...selectedClaim,
-                        claim_id: e.target.value,
-                      })
-                    }
-                    className="modal-input"
-                    placeholder="e.g., CLM-001"
-                  />
-                )}
-              </div>
-
-              <div className="modal-field">
-                <label>Claimant Name</label>
-                {modalType === "view" ? (
-                  <p className="modal-value">{selectedClaim.claimant}</p>
-                ) : (
-                  <input
-                    type="text"
-                    value={selectedClaim.claimant}
-                    onChange={(e) =>
-                      setSelectedClaim({
-                        ...selectedClaim,
-                        claimant: e.target.value,
-                      })
-                    }
-                    className="modal-input"
-                    placeholder="Enter claimant name"
-                  />
-                )}
-              </div>
-
-              <div className="modal-field">
-                <label>Amount</label>
-                {modalType === "view" ? (
-                  <p className="modal-value">{selectedClaim.amount}</p>
-                ) : (
-                  <input
-                    type="text"
-                    value={selectedClaim.amount}
-                    onChange={(e) =>
-                      setSelectedClaim({
-                        ...selectedClaim,
-                        amount: e.target.value,
-                      })
-                    }
-                    className="modal-input"
-                    placeholder="e.g., ₹45,000"
-                  />
-                )}
-              </div>
-
-              <div className="modal-field">
-                <label>Status</label>
-                {modalType === "view" ? (
-                  <p className="modal-value">
-                    <span className={`claim-status ${getStatusColor(selectedClaim.status)}`}>
-                      {selectedClaim.status}
-                    </span>
-                  </p>
-                ) : (
-                  <select
-                    value={selectedClaim.status}
-                    onChange={(e) =>
-                      setSelectedClaim({
-                        ...selectedClaim,
-                        status: e.target.value,
-                      })
-                    }
-                    className="modal-input"
-                  >
-                    <option>Approved</option>
-                    <option>Pending</option>
-                    <option>Under Review</option>
-                    <option>Rejected</option>
+                  <select className="modal-input" value={selectedClaim.status} onChange={e => setSelectedClaim({...selectedClaim, status: e.target.value})}>
+                    {Object.keys(STATUS_MAP).map(s => <option key={s}>{s}</option>)}
                   </select>
-                )}
-              </div>
-
-              <div className="modal-field">
-                <label>Type</label>
-                {modalType === "view" ? (
-                  <p className="modal-value">{selectedClaim.claim_type}</p>
-                ) : (
-                  <input
-                    type="text"
-                    value={selectedClaim.claim_type}
-                    onChange={(e) =>
-                      setSelectedClaim({
-                        ...selectedClaim,
-                        claim_type: e.target.value,
-                      })
-                    }
-                    className="modal-input"
-                    placeholder="e.g., Auto, Health, Property"
-                  />
-                )}
-              </div>
-
-              <div className="modal-field">
-                <label>Priority</label>
-                {modalType === "view" ? (
-                  <p className="modal-value">
-                    <span className={`claim-priority ${getPriorityColor(selectedClaim.priority)}`}>
-                      {selectedClaim.priority}
-                    </span>
-                  </p>
-                ) : (
-                  <select
-                    value={selectedClaim.priority}
-                    onChange={(e) =>
-                      setSelectedClaim({
-                        ...selectedClaim,
-                        priority: e.target.value,
-                      })
-                    }
-                    className="modal-input"
-                  >
-                    <option>Low</option>
-                    <option>Medium</option>
-                    <option>High</option>
-                  </select>
-                )}
-              </div>
-
-              <div className="modal-field">
-                <label>Date</label>
-                {modalType === "view" ? (
-                  <p className="modal-value">{selectedClaim.date}</p>
-                ) : (
-                  <input
-                    type="text"
-                    value={selectedClaim.date}
-                    onChange={(e) =>
-                      setSelectedClaim({
-                        ...selectedClaim,
-                        date: e.target.value,
-                      })
-                    }
-                    className="modal-input"
-                  />
                 )}
               </div>
             </div>
-
             <div className="modal-footer">
-              <button className="btn-secondary" onClick={handleCloseModal}>
-                Close
-              </button>
-              {(modalType === "edit" || modalType === "create") && (
-                <button className="btn-primary" onClick={handleSaveEdit}>
-                  {modalType === "create" ? "Create Claim" : "Save Changes"}
-                </button>
-              )}
+              <button className="btn-secondary" onClick={handleCloseModal}>Close</button>
+              {modalType !== "view" && <button className="btn-primary" onClick={handleSave}>Save</button>}
             </div>
           </div>
         </div>

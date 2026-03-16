@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { 
   getFraudRules, 
   createFraudRule, 
@@ -12,10 +12,11 @@ const FraudRules = () => {
   const [rules, setRules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Unified Modal State
   const [showModal, setShowModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editingRule, setEditingRule] = useState(null);
-  const [newRule, setNewRule] = useState({ 
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [currentRule, setCurrentRule] = useState({ 
     name: "", 
     description: "", 
     priority: "Medium",
@@ -30,7 +31,7 @@ const FraudRules = () => {
     try {
       setLoading(true);
       const data = await getFraudRules();
-      setRules(data);
+      setRules(data || []);
       setError(null);
     } catch (err) {
       setError("Failed to load fraud rules");
@@ -40,41 +41,39 @@ const FraudRules = () => {
     }
   };
 
-  const handleAddRule = async () => {
-    if (!newRule.name || !newRule.description) {
+  // Logic to handle both Add and Edit opening
+  const openModal = (rule = null) => {
+    if (rule) {
+      setIsEditMode(true);
+      setCurrentRule(rule);
+    } else {
+      setIsEditMode(false);
+      setCurrentRule({ name: "", description: "", priority: "Medium", status: "Active" });
+    }
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setCurrentRule({ name: "", description: "", priority: "Medium", status: "Active" });
+  };
+
+  const handleSaveRule = async () => {
+    if (!currentRule.name || !currentRule.description) {
       alert("Please fill in all fields");
       return;
     }
 
     try {
-      await createFraudRule(newRule);
-      setNewRule({ name: "", description: "", priority: "Medium", status: "Active" });
-      setShowModal(false);
+      if (isEditMode) {
+        await updateFraudRule(currentRule.id, currentRule);
+      } else {
+        await createFraudRule(currentRule);
+      }
+      closeModal();
       fetchRules();
     } catch (err) {
-      alert("Failed to add fraud rule");
-      console.error(err);
-    }
-  };
-
-  const handleEditRule = (rule) => {
-    setEditingRule(rule);
-    setShowEditModal(true);
-  };
-
-  const handleUpdateRule = async () => {
-    if (!editingRule.name || !editingRule.description) {
-      alert("Please fill in all fields");
-      return;
-    }
-
-    try {
-      await updateFraudRule(editingRule.id, editingRule);
-      setShowEditModal(false);
-      setEditingRule(null);
-      fetchRules();
-    } catch (err) {
-      alert("Failed to update fraud rule");
+      alert(`Failed to ${isEditMode ? 'update' : 'add'} fraud rule`);
       console.error(err);
     }
   };
@@ -101,13 +100,8 @@ const FraudRules = () => {
     }
   };
 
-  if (loading) {
-    return <div className="loading">Loading fraud rules...</div>;
-  }
-
-  if (error) {
-    return <div className="error">{error}</div>;
-  }
+  if (loading) return <div className="loading">Loading fraud rules...</div>;
+  if (error) return <div className="error">{error}</div>;
 
   return (
     <div className="fraud-rules-section">
@@ -118,7 +112,7 @@ const FraudRules = () => {
         </div>
         <div className="header-actions">
           <span className="pill">Rules: {rules.length}</span>
-          <button className="btn-primary" onClick={() => setShowModal(true)}>
+          <button className="btn-primary" onClick={() => openModal()}>
             + Add Rule
           </button>
         </div>
@@ -144,25 +138,13 @@ const FraudRules = () => {
                   {rule.status || 'Active'}
                 </span>
                 <div className="rule-buttons">
-                  <button
-                    className="btn-edit-small"
-                    onClick={() => handleEditRule(rule)}
-                    title="Edit Rule"
-                  >
+                  <button className="btn-edit-small" onClick={() => openModal(rule)} title="Edit Rule">
                     ✏️ Edit
                   </button>
-                  <button
-                    className="btn-toggle-small"
-                    onClick={() => handleToggleStatus(rule.id)}
-                    title="Toggle Status"
-                  >
+                  <button className="btn-toggle-small" onClick={() => handleToggleStatus(rule.id)} title="Toggle Status">
                     {(rule.status || 'Active') === 'Active' ? '⏸️ Deactivate' : '▶️ Activate'}
                   </button>
-                  <button
-                    className="btn-delete-small"
-                    onClick={() => handleDeleteRule(rule.id)}
-                    title="Delete Rule"
-                  >
+                  <button className="btn-delete-small" onClick={() => handleDeleteRule(rule.id)} title="Delete Rule">
                     🗑️
                   </button>
                 </div>
@@ -172,79 +154,39 @@ const FraudRules = () => {
         )}
       </div>
 
-      {/* Add Rule Modal */}
+      {/* Unified Modal */}
       {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+        <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-            <h3>Add Fraud Rule</h3>
+            <h3>{isEditMode ? "Edit Fraud Rule" : "Add Fraud Rule"}</h3>
             <input
               type="text"
               placeholder="Rule Name"
               className="input-field"
-              value={newRule.name}
-              onChange={(e) => setNewRule({ ...newRule, name: e.target.value })}
+              value={currentRule.name}
+              onChange={(e) => setCurrentRule({ ...currentRule, name: e.target.value })}
             />
             <textarea
               placeholder="Rule Description"
               className="textarea-field"
-              value={newRule.description}
-              onChange={(e) => setNewRule({ ...newRule, description: e.target.value })}
+              value={currentRule.description}
+              onChange={(e) => setCurrentRule({ ...currentRule, description: e.target.value })}
               rows="4"
             />
             <select
               className="input-field"
-              value={newRule.priority}
-              onChange={(e) => setNewRule({ ...newRule, priority: e.target.value })}
+              value={currentRule.priority}
+              onChange={(e) => setCurrentRule({ ...currentRule, priority: e.target.value })}
             >
               <option value="Low">Low Priority</option>
               <option value="Medium">Medium Priority</option>
               <option value="High">High Priority</option>
             </select>
             <div className="modal-actions">
-              <button className="btn-primary" onClick={handleAddRule}>
-                Save Rule
+              <button className="btn-primary" onClick={handleSaveRule}>
+                {isEditMode ? "Update Rule" : "Save Rule"}
               </button>
-              <button className="btn-secondary" onClick={() => setShowModal(false)}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Rule Modal */}
-      {showEditModal && editingRule && (
-        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
-          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-            <h3>Edit Fraud Rule</h3>
-            <input
-              type="text"
-              placeholder="Rule Name"
-              className="input-field"
-              value={editingRule.name}
-              onChange={(e) => setEditingRule({ ...editingRule, name: e.target.value })}
-            />
-            <textarea
-              placeholder="Rule Description"
-              className="textarea-field"
-              value={editingRule.description}
-              onChange={(e) => setEditingRule({ ...editingRule, description: e.target.value })}
-              rows="4"
-            />
-            <select
-              className="input-field"
-              value={editingRule.priority || "Medium"}
-              onChange={(e) => setEditingRule({ ...editingRule, priority: e.target.value })}
-            >
-              <option value="Low">Low Priority</option>
-              <option value="Medium">Medium Priority</option>
-              <option value="High">High Priority</option>
-            </select>
-            <div className="modal-actions">
-              <button className="btn-primary" onClick={handleUpdateRule}>
-                Update Rule
-              </button>
-              <button className="btn-secondary" onClick={() => setShowEditModal(false)}>
+              <button className="btn-secondary" onClick={closeModal}>
                 Cancel
               </button>
             </div>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Sidebar from "../components/Sidebar";
 import OverviewCards from "../components/OverviewCards";
 import UsersTable from "../components/UsersTable";
@@ -12,76 +12,78 @@ import "../styles/AdminDashboard.css";
 const AdminDashboard = () => {
   const [activeSection, setActiveSection] = useState("overview");
 
-  const sectionConfig = {
+  // 1. Unified Configuration: Merge title, subtitle, and component into one object
+  const sections = useMemo(() => ({
     overview: {
       title: "Admin Overview",
       subtitle: "Live activity across policies, claims, and risk controls.",
+      component: <OverviewCards />,
     },
     users: {
-      title: "Users",
-      subtitle: "Monitor and manage all user accounts",
+      title: "Users Management",
+      subtitle: "Monitor and manage all user accounts, access, and status.",
+      component: <UsersTable />,
     },
     policies: {
-      title: "Policies",
-      subtitle: "Insurance policies and coverage details",
+      title: "Policy Catalog",
+      subtitle: "Configure insurance policies and coverage details.",
+      component: <Policies />,
+    },
+    activePolicies: {
+      title: "Active Subscriptions",
+      subtitle: "Monitor active insurance policies and user coverage.",
+      component: <ActivePolicies />,
     },
     claims: {
       title: "Claims Management",
       subtitle: "Track and manage all insurance claims in one place.",
+      component: <ClaimsManagement />,
     },
     fraudRules: {
-      title: "Fraud Rules",
+      title: "Fraud Detection Rules",
       subtitle: "Keep detection logic sharp and up to date.",
-    },
-    activePolicies: {
-      title: "Active Policies",
-      subtitle: "Monitor active insurance policies and user coverage",
+      component: <FraudRules />,
     },
     analytics: {
-      title: "Analytics",
+      title: "System Analytics",
       subtitle: "Deep insights into claims, fraud, and policy performance.",
+      component: <AnalyticsSection />,
     },
-  };
+  }), []);
 
-  const { title, subtitle } = sectionConfig[activeSection] || sectionConfig.overview;
-
-  const renderContent = () => {
-    switch (activeSection) {
-      case "overview":
-        return <OverviewCards />;
-      case "users":
-        return <UsersTable />;
-      case "policies":
-        return <Policies />;
-      case "claims":
-        return <ClaimsManagement />;
-      case "fraudRules":
-        return <FraudRules />;
-      case "activePolicies":
-        return <ActivePolicies />;
-      case "analytics":
-        return <AnalyticsSection />;
-      default:
-        return <OverviewCards />;
-    }
-  };
+  // 2. Derive the current section data with a fallback to overview
+  const currentSection = sections[activeSection] || sections.overview;
 
   return (
     <div className="admin-container">
-      <Sidebar activeSection={activeSection} setActiveSection={setActiveSection} />
-      <div className="main-content">
-        <div className="dashboard-header">
-          <div>
-            <h1 className="page-title">{title}</h1>
-            <p className="page-subtitle">{subtitle}</p>
+      {/* Navigation Sidebar */}
+      <Sidebar 
+        activeSection={activeSection} 
+        setActiveSection={setActiveSection} 
+      />
+
+      <main className="main-content">
+        {/* Dynamic Dashboard Header */}
+        <header className="dashboard-header">
+          <div className="header-text">
+            <h1 className="page-title">{currentSection.title}</h1>
+            <p className="page-subtitle">{currentSection.subtitle}</p>
           </div>
+          
           <div className="header-actions">
             <span className="pill pill-live">System: Online</span>
             <span className="pill">Env: Local</span>
+            <div className="user-profile-summary">
+              {/* Optional: Add admin avatar/name here */}
+            </div>
           </div>
-        </div>
-        {renderContent()}
-      </div>
+        </header>
+
+        {/* Dynamic Content Area */}
+        <section className="content-area">
+          {currentSection.component}
+        </section>
+      </main>
     </div>
   );
 };

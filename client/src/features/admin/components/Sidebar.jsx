@@ -1,134 +1,229 @@
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { catalogService } from "../../../services/apiService";
 import "../styles/AdminDashboard.css";
 
-const Sidebar = ({ activeSection, setActiveSection }) => {
-  const menuItems = [
-    {
-      id: "overview",
-      label: "Overview",
-      icon: (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            d="M4 11.5c0-3.6 2.9-6.5 6.5-6.5h3c3.6 0 6.5 2.9 6.5 6.5v1c0 3.6-2.9 6.5-6.5 6.5h-3C6.9 19 4 16.1 4 12.5v-1z"
-            fill="currentColor"
-            opacity="0.25"
-          />
-          <path d="M7 13h4v4H7v-4zm6-6h4v10h-4V7z" fill="currentColor" />
-        </svg>
-      ),
-    },
-    {
-      id: "users",
-      label: "Users",
-      icon: (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            d="M5 18.5c0-3 2.5-5.5 5.5-5.5h3c3 0 5.5 2.5 5.5 5.5V20H5v-1.5z"
-            fill="currentColor"
-            opacity="0.25"
-          />
-          <path d="M12 4a4 4 0 1 1 0 8 4 4 0 0 1 0-8z" fill="currentColor" />
-        </svg>
-      ),
-    },
-    {
-      id: "policies",
-      label: "Policies",
-      icon: (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            d="M4 3h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"
-            fill="currentColor"
-            opacity="0.25"
-          />
-          <path d="M8 7h8v2H8V7zm0 4h6v2H8v-2zm0 4h8v2H8v-2z" fill="currentColor" />
-        </svg>
-      ),
-    },
-    {
-      id: "claims",
-      label: "Claims Management",
-      icon: (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            d="M4 3h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"
-            fill="currentColor"
-            opacity="0.25"
-          />
-          <path d="M8 7h8v2H8V7zm0 4h6v2H8v-2zm0 4h8v2H8v-2z" fill="currentColor" />
-        </svg>
-      ),
-    },
-    {
-      id: "fraudRules",
-      label: "Fraud Rules",
-      icon: (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            d="M6.5 5h11a2.5 2.5 0 0 1 2.5 2.5V18l-3-2H6.5A2.5 2.5 0 0 1 4 13.5v-6A2.5 2.5 0 0 1 6.5 5z"
-            fill="currentColor"
-            opacity="0.25"
-          />
-          <path d="M8 9h8v2H8V9zm0 4h5v2H8v-2z" fill="currentColor" />
-        </svg>
-      ),
-    },
-    {
-      id: "activePolicies",
-      label: "Active Policies",
-      icon: (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
-            fill="currentColor"
-            opacity="0.25"
-          />
-          <path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z" fill="currentColor" />
-        </svg>
-      ),
-    },
-    {
-      id: "analytics",
-      label: "Analytics",
-      icon: (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            d="M4 19h16v2H4v-2z"
-            fill="currentColor"
-            opacity="0.3"
-          />
-          <path d="M6 11h3v6H6v-6zm5-4h3v10h-3V7zm5 2h3v8h-3V9z" fill="currentColor" />
-        </svg>
-      ),
-    },
-  ];
+const INITIAL_FORM_STATE = {
+  name: "",
+  provider: "",
+  policy_type: "Health",
+  coverage: "",
+  premium: "",
+  claim_ratio: "",
+  description: "",
+};
+
+const TYPE_COLORS = {
+  Health: "#10b981",
+  Auto: "#3b82f6",
+  Life: "#f59e0b",
+  Home: "#8b5cf6",
+  Travel: "#ec4899",
+  Property: "#6366f1",
+};
+
+const Policies = () => {
+  const [policies, setPolicies] = useState([]);
+  const [policyTypes, setPolicyTypes] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [editingPolicyId, setEditingPolicyId] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [formData, setFormData] = useState(INITIAL_FORM_STATE);
+
+  // Memoized data loader to prevent unnecessary re-renders
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [policiesData, typesData] = await Promise.all([
+        catalogService.getPolicies(),
+        catalogService.getPolicyTypes(),
+      ]);
+      setPolicies(policiesData || []);
+      setPolicyTypes(typesData.types || []);
+      setError(null);
+    } catch (err) {
+      setError("Failed to synchronize policy data");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Modal Handlers
+  const handleOpenModal = (policy = null) => {
+    if (policy) {
+      setEditingPolicyId(policy.id);
+      setFormData({ ...policy, claim_ratio: policy.claim_ratio || "", description: policy.description || "" });
+    } else {
+      setEditingPolicyId(null);
+      setFormData(INITIAL_FORM_STATE);
+    }
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setEditingPolicyId(null);
+    setFormData(INITIAL_FORM_STATE);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // CRUD Actions
+  const handleSavePolicy = async () => {
+    const { name, provider, coverage, premium } = formData;
+    if (!name || !provider || !coverage || !premium) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      if (editingPolicyId) {
+        await catalogService.updatePolicy(editingPolicyId, formData);
+      } else {
+        await catalogService.createPolicy(formData);
+      }
+      await fetchData();
+      handleCloseModal();
+    } catch (err) {
+      setError("Operation failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeletePolicy = async (policyId) => {
+    if (!window.confirm("Are you sure you want to delete this policy?")) return;
+    
+    try {
+      setLoading(true);
+      await catalogService.deletePolicy(policyId);
+      await fetchData();
+    } catch (err) {
+      setError("Failed to delete policy");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading && policies.length === 0) return <div className="loading">Loading policies...</div>;
 
   return (
-    <div className="sidebar">
-      <div className="sidebar-brand">
+    <div className="users-section">
+      <div className="section-header">
         <div>
-          <h2 className="sidebar-title">InsureHub</h2>
-          <p className="sidebar-subtitle">Admin Portal</p>
+          <h2>Insurance Policies</h2>
+          <p className="section-subtitle">Manage insurance policies and coverage details</p>
         </div>
-        <span className="sidebar-badge">Live</span>
+        <button className="btn-primary" onClick={() => handleOpenModal()} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span>+</span> Add Policy
+        </button>
       </div>
-      <nav className="sidebar-nav">
-        {menuItems.map((item) => (
-          <div
-            key={item.id}
-            className={`sidebar-item ${activeSection === item.id ? "active" : ""}`}
-            onClick={() => setActiveSection(item.id)}
-          >
-            <span className="sidebar-item-content">
-              <span className="sidebar-icon">{item.icon}</span>
-              <span className="sidebar-label">{item.label}</span>
-            </span>
-            <span className="sidebar-dot" />
+
+      {error && <div className="error-message">{error}</div>}
+
+      <div className="table-container">
+        {policies.length === 0 ? (
+          <p className="no-data-text">No policies found. Click "Add Policy" to create one.</p>
+        ) : (
+          <table className="users-table">
+            <thead>
+              <tr>
+                <th>Policy Name</th>
+                <th>Provider</th>
+                <th>Type</th>
+                <th>Coverage</th>
+                <th>Premium</th>
+                <th>Claim Ratio</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {policies.map((policy) => (
+                <tr key={policy.id}>
+                  <td className="text-primary-bold">{policy.name}</td>
+                  <td><span className="icon-provider">📋</span> {policy.provider}</td>
+                  <td>
+                    <span 
+                      className="pill" 
+                      style={{ 
+                        backgroundColor: `${TYPE_COLORS[policy.policy_type] || "#6b7280"}20`, 
+                        color: TYPE_COLORS[policy.policy_type] || "#6b7280" 
+                      }}
+                    >
+                      {policy.policy_type}
+                    </span>
+                  </td>
+                  <td className="bold">{policy.coverage}</td>
+                  <td className="bold">{policy.premium}</td>
+                  <td className="text-success-bold">{policy.claim_ratio}</td>
+                  <td>
+                    <button className="btn-link" onClick={() => handleOpenModal(policy)}>Edit</button>
+                    <button className="btn-link-danger" onClick={() => handleDeletePolicy(policy.id)}>Delete</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {showModal && (
+        <div className="modal-overlay" onClick={handleCloseModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{editingPolicyId ? "Edit Policy" : "Add New Policy"}</h3>
+              <button className="modal-close" onClick={handleCloseModal}>×</button>
+            </div>
+            <div className="modal-body">
+              <ModalInput label="Policy Name *" name="name" value={formData.name} onChange={handleInputChange} placeholder="e.g., Comprehensive Health Shield" />
+              <ModalInput label="Provider *" name="provider" value={formData.provider} onChange={handleInputChange} placeholder="e.g., HealthFirst Insurance" />
+              
+              <div className="modal-field">
+                <label>Policy Type *</label>
+                <select name="policy_type" value={formData.policy_type} onChange={handleInputChange} className="modal-input">
+                  {(policyTypes.length > 0 ? policyTypes : Object.keys(TYPE_COLORS)).map(type => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+              </div>
+
+              <ModalInput label="Coverage Amount *" name="coverage" value={formData.coverage} onChange={handleInputChange} placeholder="e.g., ₹5.0L" />
+              <ModalInput label="Premium *" name="premium" value={formData.premium} onChange={handleInputChange} placeholder="e.g., ₹15,000/yr" />
+              <ModalInput label="Claim Ratio" name="claim_ratio" value={formData.claim_ratio} onChange={handleInputChange} placeholder="e.g., 95%" />
+
+              <div className="modal-field">
+                <label>Description</label>
+                <textarea name="description" value={formData.description} onChange={handleInputChange} className="modal-input" placeholder="Policy description..." rows="3" />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={handleCloseModal}>Cancel</button>
+              <button className="btn-primary" onClick={handleSavePolicy} disabled={loading}>
+                {editingPolicyId ? "Update Policy" : "Add Policy"}
+              </button>
+            </div>
           </div>
-        ))}
-      </nav>
+        </div>
+      )}
     </div>
   );
 };
 
-export default Sidebar;
+// Internal Sub-component for cleaner Modal JSX
+const ModalInput = ({ label, name, value, onChange, placeholder, type = "text" }) => (
+  <div className="modal-field">
+    <label>{label}</label>
+    <input type={type} name={name} value={value} onChange={onChange} className="modal-input" placeholder={placeholder} />
+  </div>
+);
+
+export default Policies;

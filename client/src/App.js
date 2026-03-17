@@ -1,49 +1,38 @@
-
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
+// Page Imports
 import Recommendation from './pages/Recommendation';
+import AdminDashboard from './features/admin/pages/AdminDashboard';
+// Assuming these are your Auth components - update paths as necessary
+import Login from './components/auth/Login'; 
+import Signup from './components/auth/Signup';
 
 function App() {
   return (
     <Router>
       <Routes>
-        
-        <Route path="/" element={<Recommendation />} />
+        {/* Auth Routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+
+        {/* Client Routes */}
+        <Route path="/" element={<Navigate to="/recommendations" />} />
         <Route path="/recommendations" element={<Recommendation />} />
+        
+        {/* Admin Routes */}
+        <Route path="/admin" element={<AdminDashboard />} />
+
+        {/* Fallback for 404 - Optional */}
+        <Route path="*" element={
+          <div style={{ padding: '2rem', textAlign: 'center' }}>
+            <h1>404</h1>
+            <p>Page not found</p>
+          </div>
+        } />
       </Routes>
     </Router>
   );
 }
 
 export default App;
-    <div>
-      <h1>Internship Project</h1>
-      <Signup />
-      <Login />
-function App() {
-  return (
-    <div>
-      <h1>Insurance CRC Project</h1>
-    </div>
-  );
-}
-
-export default App;
-=======
-import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import AdminDashboard from "./features/admin/pages/AdminDashboard";
-
-function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<h1>Insurance CRC Project</h1>} />
-        <Route path="/admin" element={<AdminDashboard />} />
-      </Routes>
-    </BrowserRouter>
-  );
-}
-
-export default App;
-

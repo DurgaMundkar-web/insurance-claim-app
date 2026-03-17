@@ -25,11 +25,13 @@ const Sidebar = () => {
 
   return (
     <aside className="sidebar-container">
+      {/* Branding Section */}
       <div className="sidebar-brand">
         <h2 className="brand-logo">InsureHub</h2>
         <span className="brand-subtext">Client Portal</span>
       </div>
 
+      {/* Navigation Links */}
       <nav className="sidebar-links">
         {menuItems.map((item) => (
           <NavLink 

@@ -1,34 +1,172 @@
-.policy-card {
+/* client/src/components/RecommendationCard.css */
+
+.recommendation-card {
   background: white;
   border: 1px solid #E0E4E8;
   border-radius: 16px;
   padding: 24px;
   margin-bottom: 24px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  font-family: 'Inter', sans-serif;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
 }
 
-.top-label { color: #00C853; font-weight: 700; font-size: 12px; margin-bottom: 12px; }
+/* Header Section */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
 
-.card-top { display: flex; justify-content: space-between; align-items: flex-start; }
-.category-pill { background: #E8F5E9; color: #1B5E20; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; }
-.plan-title { font-size: 20px; margin: 8px 0 4px; color: #1A1C1E; }
-.plan-provider { color: #666; font-size: 14px; margin: 0; }
+.category-tag {
+  background: #E8F5E9;
+  color: #1B5E20;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
 
-.match-percent { display: block; font-size: 24px; font-weight: 800; color: #00C853; text-align: right; }
-.match-text { font-size: 12px; color: #666; display: block; text-align: right; }
+.match-score {
+  text-align: right;
+}
 
-.match-bar-bg { height: 8px; background: #F0F2F5; border-radius: 10px; margin: 16px 0; overflow: hidden; }
-.match-bar-fill { height: 100%; background: #00C853; border-radius: 10px; }
+.match-value {
+  display: block;
+  font-size: 24px;
+  font-weight: 800;
+  color: #00C853;
+}
 
-.why-box { background: #F1F8F1; padding: 16px; border-radius: 8px; margin-bottom: 24px; }
-.why-title { font-size: 12px; color: #1B5E20; font-weight: 700; margin: 0 0 4px; }
-.why-body { font-size: 14px; color: #333; margin: 0; }
+.match-label {
+  display: block;
+  font-size: 12px;
+  color: #666;
+}
 
-.info-grid { display: grid; grid-template-columns: repeat(4, 1fr); margin-bottom: 24px; border-bottom: 1px solid #EEE; padding-bottom: 24px; }
-.info-item label { font-size: 12px; color: #666; display: block; margin-bottom: 4px; }
-.info-item p { font-weight: 700; font-size: 16px; margin: 0; }
-.green-stat { color: #00C853; }
+/* Titles */
+.plan-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1A1C1E;
+  margin: 8px 0 4px;
+}
 
-.feature-tag { border: 1px solid #1B5E20; color: #1B5E20; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-right: 8px; margin-bottom: 16px; display: inline-block; }
+.provider-name {
+  color: #666;
+  font-size: 14px;
+  margin: 0 0 16px;
+}
 
-.select-btn { width: 100%; background: #00C853; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 16px; }
+/* Progress/Match Bar */
+.progress-container {
+  height: 8px;
+  background: #F0F2F5;
+  border-radius: 10px;
+  margin: 16px 0 24px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: #00C853;
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+/* Insights Box */
+.reason-box {
+  background: #F1F8F1;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.reason-title {
+  font-size: 12px;
+  color: #1B5E20;
+  font-weight: 700;
+  margin: 0 0 4px;
+  text-transform: uppercase;
+}
+
+.reason-text {
+  font-size: 14px;
+  color: #333;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #EEE;
+}
+
+.stat-item label {
+  display: block;
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.stat-item p {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.highlight-green {
+  color: #00C853;
+}
+
+/* Tags & Indicators */
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.feature-tag {
+  display: inline-block;
+  border: 1px solid #1B5E20;
+  color: #1B5E20;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.risk-tag {
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+  border: 1px solid;
+}
+
+.low-risk { border-color: #2E7D32; color: #2E7D32; }
+.medium-risk { border-color: #F57C00; color: #F57C00; }
+
+/* Primary Action */
+.select-btn {
+  width: 100%;
+  background: #1B5E20;
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.select-btn:hover {
+  background: #145217;
+}

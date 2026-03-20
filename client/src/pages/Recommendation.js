@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import MainLayout from '../layout/MainLayout';
 import RecommendationCard from '../components/RecommendationCard';
+import { catalogService } from '../services/apiService';
 import './Recommendation.css';
 
 const Recommendation = () => {
@@ -9,27 +10,18 @@ const Recommendation = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/recommendations')
-      .then((res) => {
-        if (!res.ok) {
-          return res.json().then((err) => {
-            throw new Error(err.detail || 'Server Error');
-          });
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setRecommendations(data);
-        } else {
-          setRecommendations([]);
-        }
-        setLoading(false);
-      })
-      .catch((err) => {
+    const loadRecommendations = async () => {
+      try {
+        const data = await catalogService.getRecommendations();
+        setRecommendations(Array.isArray(data) ? data : []);
+      } catch (err) {
         setError(err.message);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    loadRecommendations();
   }, []);
 
   return (

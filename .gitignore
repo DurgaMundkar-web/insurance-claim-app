@@ -1,8 +1,30 @@
+<<<<<<< Updated upstream
 node_modules
 ############################
 # 🔹 Python (FastAPI)
 ############################
 venv/
+=======
+<<<<<<< HEAD
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+client/.env
+server/.env
+*.env
+
+# Python Virtual Environments
+server/venv/
+server/.venv/
+>>>>>>> Stashed changes
 __pycache__/
 *.pyc
 *.pyo
@@ -32,6 +54,7 @@ yarn-error.log*
 ############################
 .DS_Store
 Thumbs.db
+<<<<<<< Updated upstream
 
 ############################
 # 🔹 Coverage / Testing
@@ -60,3 +83,8 @@ Thumbs.db
 node_modules/
 package-lock.json
 .env
+=======
+=======
+node_modules
+>>>>>>> c18de50 (added my feature folder and code)
+>>>>>>> Stashed changes

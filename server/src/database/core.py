@@ -9,6 +9,7 @@ load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 engine = create_engine(DATABASE_URL)
+<<<<<<< Updated upstream
 
 SessionLocal = sessionmaker(bind=engine)
 
@@ -46,11 +47,14 @@ engine = create_engine(
     echo=False            # Set to True for SQL query debugging
 )
 
+=======
+>>>>>>> Stashed changes
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 Base = declarative_base()
 
 def get_db():
-    """
-    Database dependency for FastAPI endpoints.
-    Creates a new database session for each request and closes it after.
-    """
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

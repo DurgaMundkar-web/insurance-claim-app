@@ -6,13 +6,11 @@ const Claims = () => {
     <div className="p-8 bg-[#f8fafc] min-h-screen font-sans text-gray-900">
       <div className="max-w-7xl mx-auto">
         
-        {/* PAGE TITLE */}
+     
         <h1 className="text-2xl font-bold text-gray-800 mb-8">Claims Management</h1>
 
-        {/* TOP SECTION: FORM & STATS */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          
-          {/* LEFT: FORM */}
+      
           <div className="lg:col-span-2">
             <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
               <h2 className="text-lg font-bold text-gray-800 mb-6">File a New Claim</h2>
@@ -61,7 +59,7 @@ const Claims = () => {
             </div>
           </div>
 
-          {/* RIGHT: STATS & INFO */}
+       
           <div className="space-y-6">
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">Claim Statistics</h3>
@@ -100,7 +98,6 @@ const Claims = () => {
           </div>
         </div>
 
-        {/* --- CLAIM TRACKING (FULL WIDTH BOTTOM) --- */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[350px] flex flex-col">
           <div className="p-6 border-b border-gray-50">
             <h2 className="font-bold text-gray-800">Claim Tracking</h2>

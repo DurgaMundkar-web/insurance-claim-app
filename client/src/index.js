@@ -15,7 +15,7 @@ if (container) {
     </React.StrictMode>
   );
 } else {
-  console.error("Error: 'root' element सापडला नाही! कृपया index.html तपासा.");
+  console.error("Error:");
 }
 import './index.css';
 import App from './App';

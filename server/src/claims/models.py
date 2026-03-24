@@ -10,4 +10,4 @@ class Claim(Base):
     claim_type = Column(String)
     amount = Column(Float)
     description = Column(Text)
-    status = Column(String, default="Pending") # Pending, Approved, Rejected
+    status = Column(String, default="Pending") 

@@ -1,7 +1,7 @@
-// claimsService.js
+
 import axios from 'axios';
 
-const API_URL = "http://localhost:8000/api/claims"; // तुमच्या बॅकएंडचा पत्ता
+const API_URL = "http://localhost:8000/api/claims"; 
 
 export const submitClaimData = async (claimData) => {
     try {

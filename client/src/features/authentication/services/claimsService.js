@@ -1,11 +1,8 @@
-
-import axios from 'axios';
-
-const API_URL = "http://localhost:8000/api/claims"; 
+import api from './api'; 
 
 export const submitClaimData = async (claimData) => {
     try {
-        const response = await axios.post(`${API_URL}/submit-claim`, claimData);
+        const response = await api.post('/submit-claim', claimData);
         return response.data;
     } catch (error) {
         console.error("Error submitting claim:", error);
@@ -15,7 +12,7 @@ export const submitClaimData = async (claimData) => {
 
 export const fetchAllClaims = async () => {
     try {
-        const response = await axios.get(`${API_URL}/get-claims`);
+        const response = await api.get('/get-claims');
         return response.data;
     } catch (error) {
         console.error("Error fetching claims:", error);

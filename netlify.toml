@@ -1,8 +1,6 @@
 [build]
-  # 'client' फोल्डरमध्ये जाऊन बिल्ड करा
   command = "cd client && npm install && npm run build"
   
-  # CRA मध्ये तयार होणारे फोल्डर 'build' असते (dist नाही)
   publish = "client/build"
 
 [[redirects]]

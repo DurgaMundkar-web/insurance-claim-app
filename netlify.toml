@@ -1,11 +1,11 @@
 [build]
-  # आपण 'client' फोल्डरला बेस मानत आहोत
+  # Netlify ला सांगा की मुख्य काम 'client' फोल्डरमध्ये आहे
   base = "client"
   
-  # आता आपण आधीच 'client' मध्ये आहोत, त्यामुळे 'cd client' ची गरज नाही
+  # बिल्ड करण्यासाठी लागणारी कमांड
   command = "npm install && npm run build"
   
-  # 'client' फोल्डरच्या आत तयार होणारे 'build' फोल्डर निवडा
+  # बाहेर पडणारी फाईल (Base 'client' असल्यामुळे फक्त 'build' लिहा)
   publish = "build"
 
 [[redirects]]
